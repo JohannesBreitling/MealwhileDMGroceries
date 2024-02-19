@@ -29,6 +29,6 @@ jobs:
         context: .
         file: ./server.Dockerfile
         push: true
-        tags: mealwhile
-        # tags: ${{ steps.meta.outputs.tags }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: mealwhile
         # labels: ${{ steps.meta.outputs.labels }}
