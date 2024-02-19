@@ -14,5 +14,5 @@ func NewTestController() TestController {
 }
 
 func (TestController) Test(ctx echo.Context) error {
-	return ctx.JSON(http.StatusOK, "Die Änderungen funktionieren!")
+	return ctx.JSON(http.StatusOK, "Die Änderungen sind auch live!")
 }
