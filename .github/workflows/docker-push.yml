@@ -33,6 +33,15 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+  
+  delay_before_recreation:
+    name: Wait for a specified amout of time before pulling the new image to avoid pulling an old image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sleep for 15 seconds
+        run: sleep 15s
+        shell: bash
+
   initiate_container_recreation:
     name: Initiate recreation of the docker container on the server using the webhook exposed in portainer
     runs-on: ubuntu-latest
