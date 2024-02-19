@@ -37,7 +37,6 @@ jobs:
     name: Initiate recreation of the docker container on the server using the webhook exposed in portainer
     runs-on: ubuntu-latest
     steps:
-      - name: Use webhook action to ping webhook
-        uses: joelwmale/webhook-action@2.3.2
-        with:
-          url: https://94.16.118.251:9443/api/webhooks/c2cdfca4-c3d3-4a03-aaf7-2fa199eb6b56
+      - name: Trigger webhook using curl
+        run: |
+          curl --insecure -X POST https://94.16.118.251:9443/api/webhooks/c2cdfca4-c3d3-4a03-aaf7-2fa199eb6b56
