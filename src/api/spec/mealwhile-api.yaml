@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: Mealwhile
+  description: ""
+  
+  contact:
+    email: info@jbdevelopment.de
+  version: 1.0.0
+externalDocs:
+  description: Get all information on Mealwhile
+  url: https://github.com/JohannesBreitling/MealwhileDocumentation
+#servers:
+#  - url: 
+tags:
+
+paths:
+  /api/v1/groceries/:
+    get:
+      operationId: test
+      summary: 'First test route to check the functionality of the server, the codegen, etc.'
+      response:
+        '200':
+          description: The test was successful
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Das hat funktioniert!
+
+components:
+  schemas:
+    
