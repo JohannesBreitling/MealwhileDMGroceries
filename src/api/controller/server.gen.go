@@ -4,7 +4,11 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/labstack/echo/v4"
+	"github.com/oapi-codegen/runtime"
 )
 
 // ServerInterface represents all server handlers.
@@ -12,6 +16,21 @@ type ServerInterface interface {
 	// First test route to check the functionality of the server, the codegen, etc.
 	// (GET /api/v1/groceries/)
 	Test(ctx echo.Context) error
+	// Get all units
+	// (GET /api/v1/unit/)
+	GetUnits(ctx echo.Context) error
+	// Create a new unit
+	// (POST /api/v1/unit/)
+	CreateUnit(ctx echo.Context) error
+	// Delete one unit
+	// (DELETE /api/v1/unit/{id})
+	DeleteUnit(ctx echo.Context, id Id) error
+	// Get one unit with specified id
+	// (GET /api/v1/unit/{id})
+	GetUnit(ctx echo.Context, id Id) error
+	// Update an existing unit
+	// (PUT /api/v1/unit/{id})
+	UpdateUnit(ctx echo.Context, id Id) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -25,6 +44,72 @@ func (w *ServerInterfaceWrapper) Test(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.Test(ctx)
+	return err
+}
+
+// GetUnits converts echo context to params.
+func (w *ServerInterfaceWrapper) GetUnits(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetUnits(ctx)
+	return err
+}
+
+// CreateUnit converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateUnit(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateUnit(ctx)
+	return err
+}
+
+// DeleteUnit converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteUnit(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteUnit(ctx, id)
+	return err
+}
+
+// GetUnit converts echo context to params.
+func (w *ServerInterfaceWrapper) GetUnit(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetUnit(ctx, id)
+	return err
+}
+
+// UpdateUnit converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateUnit(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateUnit(ctx, id)
 	return err
 }
 
@@ -57,5 +142,10 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	}
 
 	router.GET(baseURL+"/api/v1/groceries/", wrapper.Test)
+	router.GET(baseURL+"/api/v1/unit/", wrapper.GetUnits)
+	router.POST(baseURL+"/api/v1/unit/", wrapper.CreateUnit)
+	router.DELETE(baseURL+"/api/v1/unit/:id", wrapper.DeleteUnit)
+	router.GET(baseURL+"/api/v1/unit/:id", wrapper.GetUnit)
+	router.PUT(baseURL+"/api/v1/unit/:id", wrapper.UpdateUnit)
 
 }

@@ -12,13 +12,15 @@ externalDocs:
 #servers:
 #  - url: 
 tags:
+  - name: unit
+    description: A unit describes an amount of food.
 
 paths:
   /api/v1/groceries/:
     get:
       operationId: test
-      summary: 'First test route to check the functionality of the server, the codegen, etc.'
-      response:
+      summary: First test route to check the functionality of the server, the codegen, etc.
+      responses:
         '200':
           description: The test was successful
           content:
@@ -26,7 +28,124 @@ paths:
               schema:
                 type: string
                 example: Das hat funktioniert!
+  
+  # Section for the Unit
+  /api/v1/unit/:
+    # Create new unit
+    post:
+      operationId: createUnit
+      tags:
+        - unit
+      summary: Create a new unit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+      responses:
+        '200':
+          description: Successful creation of unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    # Get all units
+    get:
+      operationId: getUnits
+      tags:
+        - unit
+      summary: Get all units
+      responses:
+        '200':
+          description: Sucessful retrieval of all units
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+  /api/v1/unit/{id}:
+    # Get a specific unit
+    get:
+      operationId: getUnit
+      tags:
+        - unit
+      summary: Get one unit with specified id
+      parameters:
+        - name: id
+          in: path
+          description: Id of the unit
+          required: true
+          schema:
+            $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Sucessful retrieval of the unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    # Update an existing unit
+    put:
+      operationId: updateUnit
+      tags:
+        - unit
+      summary: Update an existing unit
+      parameters:
+        - name: id
+          in: path
+          description: Id of the unit
+          required: true
+          schema:
+            $ref: '#/components/schemas/Id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Unit'
+      responses:
+        '200':
+          description: Successful update of unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    delete:
+      operationId: deleteUnit
+      tags:
+        - unit
+      summary: Delete one unit
+      parameters:
+        - name: id
+          in: path
+          description: Id of the unit
+          required: true
+          schema:
+            $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Sucessful deletion of the units
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
 
 components:
   schemas:
-    
+    Id:
+      type: string
+      description: Identifier for Mealwhile enitites
+      example: PEiCFxjVFvYFCtMM
+    Unit:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          type: string
+          description: Name of the unit
+          example: Gram
+        abbreviation:
+          type: string
+          description: Abbreviation of the unit in recipes
+          example: g
