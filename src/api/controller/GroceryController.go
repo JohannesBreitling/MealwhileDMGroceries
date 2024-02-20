@@ -68,7 +68,7 @@ func (ctr GroceryController) CreateUnit(ctx echo.Context) error {
 	log.Info(msg)
 
 	// Create the unit
-	createdUnit, err := ctr.unitOps.Create(unit)
+	createdUnit, err := ctr.unitOps.Create(&unit)
 
 	// If there was an error, the error should be returned
 	if err != nil {
