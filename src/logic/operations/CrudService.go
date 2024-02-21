@@ -26,7 +26,12 @@ func (service CrudService) Create(entity model.CrudEntity) (model.CrudEntity, er
 	return createdEntity, nil
 }
 
-func (CrudService) Read(entity model.CrudEntity) (model.CrudEntity, error) {
+func (CrudService) ReadAll() ([]model.CrudEntity, error) {
+	// TODO implement
+	return nil, nil
+}
+
+func (CrudService) Read(id string) (model.CrudEntity, error) {
 	// TODO implement
 	return nil, nil
 }
@@ -36,7 +41,7 @@ func (CrudService) Update(entity model.CrudEntity) (model.CrudEntity, error) {
 	return nil, nil
 }
 
-func (CrudService) Delete(entity model.CrudEntity) error {
+func (CrudService) Delete(id string) error {
 	// TODO implement
 	return nil
 }

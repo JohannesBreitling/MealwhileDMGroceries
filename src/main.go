@@ -49,7 +49,13 @@ func main() {
 	unitOperations := operations.NewUnitOperations(unitCrudService)
 
 	// Create the controllers
-	groceryController := controller.NewGroceryController(unitOperations)
+
+	unitExpectedCrudArguments := controller.ExpectedCrudArguments{
+		Create: []string{"name", "abbreviation"},
+	}
+
+	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments)
+	groceryController := controller.NewGroceryController(unitOperations, unitCrudController)
 
 	// --------------------
 	// Create and start the webserver

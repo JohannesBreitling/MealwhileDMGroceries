@@ -1,43 +1,38 @@
 package controller
 
 import (
-	"fmt"
 	"mealwhile/logic/model"
 	"mealwhile/logic/operations/interfaces"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	log "github.com/sirupsen/logrus"
 )
 
 type GroceryController struct {
-	expectedUnitRequest []string
-	expectedUnit        []string
-
-	unitOps interfaces.UnitOperationsInterface
+	unitOps            interfaces.UnitOperationsInterface
+	unitCrudController CrudControllerInterface
 }
 
-func NewGroceryController(unitOps interfaces.UnitOperationsInterface) GroceryController {
+func NewGroceryController(unitOps interfaces.UnitOperationsInterface, unitCrudController CrudControllerInterface) GroceryController {
 	return GroceryController{
-		expectedUnitRequest: []string{"name", "abbreviation"},
-		expectedUnit:        []string{"id", "name", "abbreviation"},
-		unitOps:             unitOps,
+		unitOps:            unitOps,
+		unitCrudController: unitCrudController,
 	}
 }
 
-func (GroceryController) validateInput(input map[string]string, expected []string) bool {
-	if len(input) != len(expected) {
-		return false
-	}
-
-	for _, key := range expected {
-		if _, ok := input[key]; !ok {
-			return false
-		}
-	}
-
-	return true
-}
+//func (GroceryController) validateInput(input map[string]string, expected []string) bool {
+//	if len(input) != len(expected) {
+//		return false
+//	}
+//
+//	for _, key := range expected {
+//		if _, ok := input[key]; !ok {
+//			return false
+//		}
+//	}
+//
+// 	return true
+// }
 
 // --------------------
 // Implement handlers for the routes
@@ -50,46 +45,35 @@ func (GroceryController) Test(ctx echo.Context) error {
 // TODO Error handling nochmal überdenken
 
 func (ctr GroceryController) CreateUnit(ctx echo.Context) error {
-	var msg string
+	return ctr.unitCrudController.Create(ctx, &model.Unit{})
+}
 
-	// Get the attributes from the request body
-	var attributes map[string]string
-	err := ctx.Bind(&attributes)
+func (ctr GroceryController) GetUnits(ctx echo.Context) error {
+	units, err := ctr.unitOps.ReadAll()
 
-	// Check if the body has the correct format
-	msg = "Request body has bad format. It should include only the attributes name and abbreviation"
-	if err != nil || !ctr.validateInput(attributes, ctr.expectedUnitRequest) {
-		log.Error(msg)
-		return ctx.JSON(http.StatusBadRequest, msg)
-	}
-
-	unit := model.Unit{Name: attributes["name"], Abbreviation: attributes["abbreviation"]}
-	msg = fmt.Sprintf("Create new unit %s (%s)", unit.Name, unit.Abbreviation)
-	log.Info(msg)
-
-	// Create the unit
-	createdUnit, err := ctr.unitOps.Create(&unit)
-
-	// If there was an error, the error should be returned
 	if err != nil {
 		return err
 	}
 
-	return ctx.JSON(http.StatusOK, createdUnit)
+	return ctx.JSON(http.StatusOK, units)
 }
 
-func (GroceryController) GetUnits(ctx echo.Context) error {
+func (ctr GroceryController) GetUnit(ctx echo.Context, id Id) error {
+	//units, err := ctr.unitOps.Read(id)
+
+	//if err != nil {
+	//	return err
+	// }
+
+	// return ctx.JSON(http.StatusOK, units)
+
+	return ctx.JSON(http.StatusNotImplemented, "Not implemented")
+}
+
+func (ctr GroceryController) DeleteUnit(ctx echo.Context, id Id) error {
 	return nil
 }
 
-func (GroceryController) GetUnit(ctx echo.Context, id Id) error {
-	return nil
-}
-
-func (GroceryController) DeleteUnit(ctx echo.Context, id Id) error {
-	return nil
-}
-
-func (GroceryController) UpdateUnit(ctx echo.Context, id Id) error {
+func (ctr GroceryController) UpdateUnit(ctx echo.Context, id Id) error {
 	return nil
 }

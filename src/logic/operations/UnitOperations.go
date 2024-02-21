@@ -14,14 +14,18 @@ func (ops UnitOperations) Create(entity model.CrudEntity) (model.CrudEntity, err
 	return ops.Service.Create(entity)
 }
 
-func (ops UnitOperations) Read(entity model.CrudEntity) (model.CrudEntity, error) {
-	return ops.Service.Read(entity)
+func (ops UnitOperations) ReadAll() ([]model.CrudEntity, error) {
+	return ops.Service.ReadAll()
+}
+
+func (ops UnitOperations) Read(id string) (model.CrudEntity, error) {
+	return ops.Service.Read(id)
 }
 
 func (ops UnitOperations) Update(entity model.CrudEntity) (model.CrudEntity, error) {
 	return ops.Service.Update(entity)
 }
 
-func (ops UnitOperations) Delete(entity model.CrudEntity) error {
-	return ops.Service.Delete(entity)
+func (ops UnitOperations) Delete(id string) error {
+	return ops.Service.Delete(id)
 }

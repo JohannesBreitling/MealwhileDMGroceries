@@ -8,4 +8,7 @@ type CrudEntity interface {
 
 	Empty() CrudEntity
 	ToPersistenceEntity() persistenceentites.CrudPersistenceEntity
+	String() string
+	EntityName() string
+	FromArguments(map[string]string) CrudEntity
 }
