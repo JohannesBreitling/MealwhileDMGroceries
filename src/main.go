@@ -49,6 +49,7 @@ func main() {
 
 	unitExpectedCrudArguments := controller.ExpectedCrudArguments{
 		Create: []string{"name", "abbreviation"},
+		Update: []string{"id", "name", "abbreviation"},
 	}
 
 	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments)

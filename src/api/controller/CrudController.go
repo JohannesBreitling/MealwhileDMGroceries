@@ -12,6 +12,7 @@ import (
 
 type ExpectedCrudArguments struct {
 	Create []string
+	Update []string
 }
 
 func BuildAttributeString(attributes []string) string {
@@ -43,7 +44,6 @@ func (CrudController) validateInput(input map[string]string, expected []string) 
 	}
 
 	for _, key := range expected {
-		log.Info(key)
 		if _, ok := input[key]; !ok {
 			return false
 		}
@@ -61,16 +61,13 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 
 	// Check if the body has the correct format
 	valid := ctr.validateInput(attributes, ctr.args.Create)
-	msg = fmt.Sprintf("Request body has bad format. It should have the following format: %s", BuildAttributeString(ctr.args.Create))
+	msg = fmt.Sprintf("request body has bad format. It should have the following format: %s", BuildAttributeString(ctr.args.Create))
 	if err != nil || !valid {
 		log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
 	}
 
 	entityBuilt := entity.FromArguments(attributes)
-
-	msg = fmt.Sprintf("Create new %s", entityBuilt.EntityName())
-	log.Info(msg)
 
 	// Create the unit
 	createdEntity, err := ctr.ops.Create(entityBuilt)
@@ -87,8 +84,66 @@ func (ctr CrudController) GetAll(ctx echo.Context, target model.CrudEntity) erro
 	entities, err := ctr.ops.ReadAll(target)
 
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, "Something went wrong retreiving entities: ")
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return ctx.JSON(http.StatusOK, entities)
+}
+
+func (ctr CrudController) Get(ctx echo.Context, target model.CrudEntity, id string) error {
+	if id == "" {
+		return ctx.JSON(http.StatusBadRequest, "the id should not be empty")
+	}
+
+	entity, err := ctr.ops.Read(target, id)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, entity)
+}
+
+func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity, id string) error {
+	var msg string
+
+	// Get the attributes from the request body
+	var attributes map[string]string
+	err := (&echo.DefaultBinder{}).BindBody(ctx, &attributes)
+
+	// Check if the body has the correct format
+	valid := ctr.validateInput(attributes, ctr.args.Update)
+	msg = fmt.Sprintf("request body has bad format. It should have the following format: %s", BuildAttributeString(ctr.args.Update))
+	if err != nil || !valid {
+		log.Error(msg)
+		return ctx.JSON(http.StatusBadRequest, msg)
+	}
+
+	entityBuilt := entity.FromArguments(attributes)
+
+	if id == "" {
+		return ctx.JSON(http.StatusBadRequest, "the id should not be empty")
+	}
+
+	newEntity, err := ctr.ops.Update(entityBuilt, id)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, newEntity)
+}
+
+func (ctr CrudController) Delete(ctx echo.Context, target model.CrudEntity, id string) error {
+	if id == "" {
+		return ctx.JSON(http.StatusBadRequest, "the id should not be empty")
+	}
+
+	err := ctr.ops.Delete(target, id)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, "")
 }

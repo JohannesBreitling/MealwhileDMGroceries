@@ -57,3 +57,72 @@ func (repo CrudRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity,
 
 	return results, nil
 }
+
+func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
+	var result map[string]interface{}
+
+	// Convert the received target to a persistence entity
+	petarget := repo.crudMappers.EntityToPersistenceEntity(target)
+
+	// Find the result
+	err := repo.db.Model(petarget).Where("id = ?", id).Find(&result).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("something went wrong retrieving the entitiy")
+	}
+
+	// Convert the result
+	entity := model.Unit{}.FromInterface(result)
+
+	return entity, nil
+}
+
+// TODO ID BEIM UPDATE RAUS
+func (repo CrudRepository) Update(entity model.CrudEntity, id string) (model.CrudEntity, error) {
+	// Get the persistence entity
+	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+
+	err := repo.db.Save(pe).Error
+
+	if err != nil {
+		return entity.Empty(), fmt.Errorf("something went wrong updating the entity")
+	}
+
+	return entity, nil
+}
+
+func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
+	// Get the persistence entity
+	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+
+	foundEntity, err := repo.Read(entity, id)
+
+	if err != nil {
+		return fmt.Errorf("something went wrong deleting the entity")
+	}
+
+	err = repo.db.Model(pe).Where("id = ?", id).Delete(foundEntity).Error
+
+	if err != nil {
+		return fmt.Errorf("something went wrong deleting the entity")
+	}
+
+	return nil
+}
+
+func (repo CrudRepository) Exists(entity model.CrudEntity, id string) (bool, error) {
+	// Get the persistence entity
+	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+
+	var result map[string]interface{}
+
+	err := repo.db.Model(pe).Where("id = ?", id).Find(&result).Error
+
+	if err != nil && err == gorm.ErrRecordNotFound {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("something went wrong updating the entity")
+	}
+
+	return true, nil
+}

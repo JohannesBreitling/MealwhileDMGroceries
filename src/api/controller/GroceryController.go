@@ -20,20 +20,6 @@ func NewGroceryController(unitOps interfaces.UnitOperationsInterface, unitCrudCo
 	}
 }
 
-//func (GroceryController) validateInput(input map[string]string, expected []string) bool {
-//	if len(input) != len(expected) {
-//		return false
-//	}
-//
-//	for _, key := range expected {
-//		if _, ok := input[key]; !ok {
-//			return false
-//		}
-//	}
-//
-// 	return true
-// }
-
 // --------------------
 // Implement handlers for the routes
 // --------------------
@@ -53,21 +39,13 @@ func (ctr GroceryController) GetUnits(ctx echo.Context) error {
 }
 
 func (ctr GroceryController) GetUnit(ctx echo.Context, id Id) error {
-	//units, err := ctr.unitOps.Read(id)
-
-	//if err != nil {
-	//	return err
-	// }
-
-	// return ctx.JSON(http.StatusOK, units)
-
-	return ctx.JSON(http.StatusNotImplemented, "Not implemented")
+	return ctr.unitCrudController.Get(ctx, &model.Unit{}, id)
 }
 
 func (ctr GroceryController) DeleteUnit(ctx echo.Context, id Id) error {
-	return nil
+	return ctr.unitCrudController.Delete(ctx, &model.Unit{}, id)
 }
 
 func (ctr GroceryController) UpdateUnit(ctx echo.Context, id Id) error {
-	return nil
+	return ctr.unitCrudController.Update(ctx, &model.Unit{}, id)
 }

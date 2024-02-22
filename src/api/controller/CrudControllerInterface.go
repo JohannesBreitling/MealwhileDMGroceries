@@ -8,8 +8,8 @@ import (
 
 type CrudControllerInterface interface {
 	Create(ctx echo.Context, entity model.CrudEntity) error
-	//Get(ctx echo.Context, id string) error
+	Get(ctx echo.Context, target model.CrudEntity, id string) error
 	GetAll(ctx echo.Context, target model.CrudEntity) error
-	// Update()
-	// Delete()
+	Update(ctx echo.Context, entity model.CrudEntity, id string) error
+	Delete(ctx echo.Context, target model.CrudEntity, id string) error
 }

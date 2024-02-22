@@ -26,10 +26,24 @@ func (repo UnitRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 }
 
 func (repo UnitRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
-	tg, err := repo.crudRepo.ReadAll(target)
-	return tg, err
+	return repo.crudRepo.ReadAll(target)
 }
 
-// Read(entity persistenceentites.CrudPersistenceEntity)
+func (repo UnitRepository) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
+	return repo.crudRepo.Read(target, id)
+}
+
+func (repo UnitRepository) Update(target model.CrudEntity, id string) (model.CrudEntity, error) {
+	return repo.crudRepo.Update(target, id)
+}
+
+func (repo UnitRepository) Delete(target model.CrudEntity, id string) error {
+	return repo.crudRepo.Delete(target, id)
+}
+
+func (repo UnitRepository) Exists(target model.CrudEntity, id string) (bool, error) {
+	return repo.crudRepo.Exists(target, id)
+}
+
 // Update(entity persistenceentites.CrudPersistenceEntity) (persistenceentites.CrudPersistenceEntity, error)
 //Delete(entity persistenceentites.CrudPersistenceEntity) error
