@@ -14,8 +14,8 @@ func (ops UnitOperations) Create(entity model.CrudEntity) (model.CrudEntity, err
 	return ops.Service.Create(entity)
 }
 
-func (ops UnitOperations) ReadAll() ([]model.CrudEntity, error) {
-	return ops.Service.ReadAll()
+func (ops UnitOperations) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
+	return ops.Service.ReadAll(&model.Unit{})
 }
 
 func (ops UnitOperations) Read(id string) (model.CrudEntity, error) {

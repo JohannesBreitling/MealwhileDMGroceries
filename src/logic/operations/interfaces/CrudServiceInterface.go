@@ -6,7 +6,7 @@ import (
 
 type CrudServiceInterface interface {
 	Create(entity model.CrudEntity) (model.CrudEntity, error)
-	ReadAll() ([]model.CrudEntity, error)
+	ReadAll(entity model.CrudEntity) ([]model.CrudEntity, error)
 	// Read(id string) (model.CrudEntity, error)
 	// Update(entity model.CrudEntity) (model.CrudEntity, error)
 	// Delete(id string) error

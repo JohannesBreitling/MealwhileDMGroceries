@@ -14,7 +14,6 @@ func NewCrudService(repo data.CrudRepositoryInterface) CrudService {
 }
 
 func (service CrudService) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-
 	// TODO Advanced: Check if entity (name / abbr) already exists
 
 	createdEntity, err := service.repo.Create(entity)
@@ -26,9 +25,14 @@ func (service CrudService) Create(entity model.CrudEntity) (model.CrudEntity, er
 	return createdEntity, nil
 }
 
-func (CrudService) ReadAll() ([]model.CrudEntity, error) {
-	// TODO implement
-	return nil, nil
+func (service CrudService) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
+	entites, err := service.repo.ReadAll(target)
+
+	if err != nil {
+		return []model.CrudEntity{}, err
+	}
+
+	return entites, nil
 }
 
 func (CrudService) Read(id string) (model.CrudEntity, error) {

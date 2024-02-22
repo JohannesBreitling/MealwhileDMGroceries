@@ -49,13 +49,7 @@ func (ctr GroceryController) CreateUnit(ctx echo.Context) error {
 }
 
 func (ctr GroceryController) GetUnits(ctx echo.Context) error {
-	units, err := ctr.unitOps.ReadAll()
-
-	if err != nil {
-		return err
-	}
-
-	return ctx.JSON(http.StatusOK, units)
+	return ctr.unitCrudController.GetAll(ctx, &model.Unit{})
 }
 
 func (ctr GroceryController) GetUnit(ctx echo.Context, id Id) error {

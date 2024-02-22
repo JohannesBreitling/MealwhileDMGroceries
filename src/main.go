@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"mealwhile/api/controller"
 	"mealwhile/data"
-	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/operations"
 	"os"
 	"strconv"
@@ -38,9 +37,7 @@ func main() {
 	}
 
 	// Create the repositories
-
-	unitCrudRepository := data.NewCrudRepository(db, &persistenceentites.UnitPersistenceEntity{})
-	unitRepository := data.NewUnitRepository(db, unitCrudRepository)
+	unitRepository := data.NewUnitRepository(db)
 
 	// Create the CrudServices
 	unitCrudService := operations.NewCrudService(unitRepository)

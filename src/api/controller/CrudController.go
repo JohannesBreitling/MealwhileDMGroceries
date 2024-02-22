@@ -61,7 +61,7 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 
 	// Check if the body has the correct format
 	valid := ctr.validateInput(attributes, ctr.args.Create)
-	msg = fmt.Sprintf("Request body has bad format. It should has the following format: %s", BuildAttributeString(ctr.args.Create))
+	msg = fmt.Sprintf("Request body has bad format. It should have the following format: %s", BuildAttributeString(ctr.args.Create))
 	if err != nil || !valid {
 		log.Error(msg)
 		return ctx.JSON(http.StatusBadRequest, msg)
@@ -81,4 +81,14 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 	}
 
 	return ctx.JSON(http.StatusOK, createdEntity)
+}
+
+func (ctr CrudController) GetAll(ctx echo.Context, target model.CrudEntity) error {
+	entities, err := ctr.ops.ReadAll(target)
+
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, "Something went wrong retreiving entities: ")
+	}
+
+	return ctx.JSON(http.StatusOK, entities)
 }

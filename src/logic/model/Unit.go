@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	persistenceentites "mealwhile/data/persistenceentities"
 )
 
 type Unit struct {
@@ -22,7 +21,6 @@ func (u *Unit) SetId(id string) {
 func (u *Unit) Empty() CrudEntity {
 	return &Unit{}
 }
-
 func (Unit) EntityName() string {
 	return "unit"
 }
@@ -32,20 +30,34 @@ func (u Unit) String() string {
 	return str
 }
 
-func (u *Unit) ToPersistenceEntity() persistenceentites.CrudPersistenceEntity {
-	return persistenceentites.UnitPersistenceEntity{
-		Id:           u.Id,
-		Name:         u.Name,
-		Abbreviation: u.Abbreviation,
-	}
-}
-
 func (u Unit) FromArguments(args map[string]string) CrudEntity {
 	unit := Unit{}
 
 	id, idOk := args["id"]
 	name, nameOk := args["name"]
 	abbreviation, abbreviationOk := args["abbreviation"]
+
+	if idOk {
+		unit.Id = id
+	}
+
+	if nameOk {
+		unit.Name = name
+	}
+
+	if abbreviationOk {
+		unit.Abbreviation = abbreviation
+	}
+
+	return &unit
+}
+
+func (u Unit) FromInterface(arg map[string]interface{}) CrudEntity {
+	unit := Unit{}
+
+	id, idOk := arg["id"].(string)
+	name, nameOk := arg["name"].(string)
+	abbreviation, abbreviationOk := arg["abbreviation"].(string)
 
 	if idOk {
 		unit.Id = id
