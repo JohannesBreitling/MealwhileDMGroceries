@@ -38,12 +38,15 @@ func main() {
 
 	// Create the repositories
 	unitRepository := data.NewUnitRepository(db)
+	flagRepository := data.NewFlagRepository(db)
 
 	// Create the CrudServices
 	unitCrudService := operations.NewCrudService(unitRepository)
+	flagCrudService := operations.NewCrudService(flagRepository)
 
 	// Create the operations
 	unitOperations := operations.NewUnitOperations(unitCrudService)
+	flagOperations := operations.NewFlagOperations(flagCrudService)
 
 	// Create the controllers
 
@@ -52,8 +55,15 @@ func main() {
 		Update: []string{"id", "name", "abbreviation"},
 	}
 
+	flagExpectedCrudArguments := controller.ExpectedCrudArguments{
+		Create: []string{"name", "description"},
+		Update: []string{"id", "name", "description"},
+	}
+
 	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments)
-	groceryController := controller.NewGroceryController(unitOperations, unitCrudController)
+	flagCrudController := controller.NewCrudController(flagOperations, flagExpectedCrudArguments)
+
+	groceryController := controller.NewGroceryController(unitOperations, unitCrudController, flagOperations, flagCrudController)
 
 	// --------------------
 	// Create and start the webserver

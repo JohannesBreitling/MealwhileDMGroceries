@@ -22,8 +22,8 @@ func (ops UnitOperations) Read(target model.CrudEntity, id string) (model.CrudEn
 	return ops.Service.Read(target, id)
 }
 
-func (ops UnitOperations) Update(entity model.CrudEntity, id string) (model.CrudEntity, error) {
-	return ops.Service.Update(entity, id)
+func (ops UnitOperations) Update(entity model.CrudEntity) (model.CrudEntity, error) {
+	return ops.Service.Update(entity)
 }
 
 func (ops UnitOperations) Delete(target model.CrudEntity, id string) error {

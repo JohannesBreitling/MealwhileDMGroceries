@@ -33,8 +33,8 @@ func (repo UnitRepository) Read(target model.CrudEntity, id string) (model.CrudE
 	return repo.crudRepo.Read(target, id)
 }
 
-func (repo UnitRepository) Update(target model.CrudEntity, id string) (model.CrudEntity, error) {
-	return repo.crudRepo.Update(target, id)
+func (repo UnitRepository) Update(target model.CrudEntity) (model.CrudEntity, error) {
+	return repo.crudRepo.Update(target)
 }
 
 func (repo UnitRepository) Delete(target model.CrudEntity, id string) error {

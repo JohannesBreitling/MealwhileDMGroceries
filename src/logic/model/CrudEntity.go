@@ -9,4 +9,5 @@ type CrudEntity interface {
 	String() string
 	EntityName() string
 	FromArguments(map[string]string) CrudEntity
+	FromInterface(map[string]interface{}) CrudEntity
 }

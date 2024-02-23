@@ -14,6 +14,8 @@ externalDocs:
 tags:
   - name: unit
     description: A unit describes an amount of food.
+  - name: flag
+    description: A flag describes an (chemical / biological) ingredient of a grocery, e. g. an allergy or some sort of dietry
 
 paths:
   /api/v1/groceries/:
@@ -29,7 +31,7 @@ paths:
                 type: string
                 example: Das hat funktioniert!
   
-  # Section for the Unit
+  # Section for the Units
   /api/v1/unit/:
     # Create new unit
     post:
@@ -41,14 +43,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Unit'
+              $ref: '#/components/schemas/unit'
       responses:
         '200':
           description: Successful creation of unit
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unit'
+                $ref: '#/components/schemas/unit'
     # Get all units
     get:
       operationId: getUnits
@@ -63,7 +65,25 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Unit'
+                  $ref: '#/components/schemas/unit'
+    # Update an existing unit
+    put:
+      operationId: updateUnit
+      tags:
+        - unit
+      summary: Update an existing unit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unit'
+      responses:
+        '200':
+          description: Successful update of unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unit'
   /api/v1/unit/{id}:
     # Get a specific unit
     get:
@@ -77,39 +97,14 @@ paths:
           description: Id of the unit
           required: true
           schema:
-            $ref: '#/components/schemas/Id'
+            $ref: '#/components/schemas/id'
       responses:
         '200':
           description: Sucessful retrieval of the unit
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unit'
-    # Update an existing unit
-    put:
-      operationId: updateUnit
-      tags:
-        - unit
-      summary: Update an existing unit
-      parameters:
-        - name: id
-          in: path
-          description: Id of the unit
-          required: true
-          schema:
-            $ref: '#/components/schemas/Id'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Unit'
-      responses:
-        '200':
-          description: Successful update of unit
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Unit'
+                $ref: '#/components/schemas/unit'
     delete:
       operationId: deleteUnit
       tags:
@@ -121,26 +116,120 @@ paths:
           description: Id of the unit
           required: true
           schema:
-            $ref: '#/components/schemas/Id'
+            $ref: '#/components/schemas/id'
       responses:
         '200':
           description: Sucessful deletion of the units
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unit'
+                $ref: '#/components/schemas/unit'
+
+  # Section for the Flags
+  /api/v1/flag/:
+    # Create new flag
+    post:
+      operationId: createFlag
+      tags:
+        - flag
+      summary: Create a new flag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/flag'
+      responses:
+        '200':
+          description: Successful creation of flag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag'
+    # Get all flags
+    get:
+      operationId: getFlags
+      tags:
+        - unit
+      summary: Get all flags
+      responses:
+        '200':
+          description: Sucessful retrieval of all flags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/flag'
+    # Update an existing flag
+    put:
+      operationId: updateFlag
+      tags:
+        - unit
+      summary: Update an existing flag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/flag'
+      responses:
+        '200':
+          description: Successful update of flag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag'
+  /api/v1/flag/{id}:
+    # Get a specific flag
+    get:
+      operationId: getFlag
+      tags:
+        - flag
+      summary: Get one flag with specified id
+      parameters:
+        - name: id
+          in: path
+          description: Id of the flag
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful retrieval of the flag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag'
+    delete:
+      operationId: deleteFlag
+      tags:
+        - flag
+      summary: Delete one flag
+      parameters:
+        - name: id
+          in: path
+          description: Id of the flag
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful deletion of the flag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/flag'
 
 components:
   schemas:
-    Id:
+    id:
       type: string
       description: Identifier for Mealwhile enitites
       example: PEiCFxjVFvYFCtMM
-    Unit:
+    unit:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/Id'
+          $ref: '#/components/schemas/id'
         name:
           type: string
           description: Name of the unit
@@ -149,3 +238,16 @@ components:
           type: string
           description: Abbreviation of the unit in recipes
           example: g
+    flag:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: Name of the flag
+          example: Hazelnut
+        description:
+          type: string
+          description: Description of the respective grocery flag. It can desrcibe allergies or different 
+          example: The grocery contains hazelnuts.

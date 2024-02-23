@@ -38,17 +38,23 @@ func (service CrudService) ReadAll(target model.CrudEntity) ([]model.CrudEntity,
 }
 
 func (service CrudService) Read(entity model.CrudEntity, id string) (model.CrudEntity, error) {
-	return service.repo.Read(entity, id)
-}
-
-func (service CrudService) Update(entity model.CrudEntity, id string) (model.CrudEntity, error) {
-	err := service.exists(entity, id)
+	err := service.exists(entity.Empty(), id)
 
 	if err != nil {
 		return entity.Empty(), err
 	}
 
-	return service.repo.Update(entity, id)
+	return service.repo.Read(entity, id)
+}
+
+func (service CrudService) Update(entity model.CrudEntity) (model.CrudEntity, error) {
+	err := service.exists(entity.Empty(), entity.GetId())
+
+	if err != nil {
+		return entity.Empty(), err
+	}
+
+	return service.repo.Update(entity)
 }
 
 func (service CrudService) Delete(target model.CrudEntity, id string) error {

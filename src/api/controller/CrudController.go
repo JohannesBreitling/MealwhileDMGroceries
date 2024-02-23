@@ -21,8 +21,8 @@ func BuildAttributeString(attributes []string) string {
 
 	for _, s := range attributes {
 		attributeString := fmt.Sprintf("'%s': 'value of %s'", s, s)
-		fmt.Append([]byte(separator))
-		fmt.Append([]byte(attributeString))
+		attributeList += separator
+		attributeList += attributeString
 		separator = ", "
 	}
 
@@ -44,7 +44,7 @@ func (CrudController) validateInput(input map[string]string, expected []string) 
 	}
 
 	for _, key := range expected {
-		if _, ok := input[key]; !ok {
+		if _, ok := input[key]; !ok || input[key] == "" {
 			return false
 		}
 	}
@@ -69,7 +69,7 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 
 	entityBuilt := entity.FromArguments(attributes)
 
-	// Create the unit
+	// Create the entity
 	createdEntity, err := ctr.ops.Create(entityBuilt)
 
 	// If there was an error, the error should be returned
@@ -104,7 +104,7 @@ func (ctr CrudController) Get(ctx echo.Context, target model.CrudEntity, id stri
 	return ctx.JSON(http.StatusOK, entity)
 }
 
-func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity, id string) error {
+func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity) error {
 	var msg string
 
 	// Get the attributes from the request body
@@ -121,11 +121,7 @@ func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity, id s
 
 	entityBuilt := entity.FromArguments(attributes)
 
-	if id == "" {
-		return ctx.JSON(http.StatusBadRequest, "the id should not be empty")
-	}
-
-	newEntity, err := ctr.ops.Update(entityBuilt, id)
+	newEntity, err := ctr.ops.Update(entityBuilt)
 
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, err.Error())

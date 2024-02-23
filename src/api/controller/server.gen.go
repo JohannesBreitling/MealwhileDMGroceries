@@ -13,6 +13,21 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Get all flags
+	// (GET /api/v1/flag/)
+	GetFlags(ctx echo.Context) error
+	// Create a new flag
+	// (POST /api/v1/flag/)
+	CreateFlag(ctx echo.Context) error
+	// Update an existing flag
+	// (PUT /api/v1/flag/)
+	UpdateFlag(ctx echo.Context) error
+	// Delete one flag
+	// (DELETE /api/v1/flag/{id})
+	DeleteFlag(ctx echo.Context, id Id) error
+	// Get one flag with specified id
+	// (GET /api/v1/flag/{id})
+	GetFlag(ctx echo.Context, id Id) error
 	// First test route to check the functionality of the server, the codegen, etc.
 	// (GET /api/v1/groceries/)
 	Test(ctx echo.Context) error
@@ -22,20 +37,79 @@ type ServerInterface interface {
 	// Create a new unit
 	// (POST /api/v1/unit/)
 	CreateUnit(ctx echo.Context) error
+	// Update an existing unit
+	// (PUT /api/v1/unit/)
+	UpdateUnit(ctx echo.Context) error
 	// Delete one unit
 	// (DELETE /api/v1/unit/{id})
 	DeleteUnit(ctx echo.Context, id Id) error
 	// Get one unit with specified id
 	// (GET /api/v1/unit/{id})
 	GetUnit(ctx echo.Context, id Id) error
-	// Update an existing unit
-	// (PUT /api/v1/unit/{id})
-	UpdateUnit(ctx echo.Context, id Id) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// GetFlags converts echo context to params.
+func (w *ServerInterfaceWrapper) GetFlags(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetFlags(ctx)
+	return err
+}
+
+// CreateFlag converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateFlag(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateFlag(ctx)
+	return err
+}
+
+// UpdateFlag converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateFlag(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateFlag(ctx)
+	return err
+}
+
+// DeleteFlag converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteFlag(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteFlag(ctx, id)
+	return err
+}
+
+// GetFlag converts echo context to params.
+func (w *ServerInterfaceWrapper) GetFlag(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetFlag(ctx, id)
+	return err
 }
 
 // Test converts echo context to params.
@@ -62,6 +136,15 @@ func (w *ServerInterfaceWrapper) CreateUnit(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshaled arguments
 	err = w.Handler.CreateUnit(ctx)
+	return err
+}
+
+// UpdateUnit converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateUnit(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateUnit(ctx)
 	return err
 }
 
@@ -97,22 +180,6 @@ func (w *ServerInterfaceWrapper) GetUnit(ctx echo.Context) error {
 	return err
 }
 
-// UpdateUnit converts echo context to params.
-func (w *ServerInterfaceWrapper) UpdateUnit(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "id" -------------
-	var id Id
-
-	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.UpdateUnit(ctx, id)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -141,11 +208,16 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.GET(baseURL+"/api/v1/flag/", wrapper.GetFlags)
+	router.POST(baseURL+"/api/v1/flag/", wrapper.CreateFlag)
+	router.PUT(baseURL+"/api/v1/flag/", wrapper.UpdateFlag)
+	router.DELETE(baseURL+"/api/v1/flag/:id", wrapper.DeleteFlag)
+	router.GET(baseURL+"/api/v1/flag/:id", wrapper.GetFlag)
 	router.GET(baseURL+"/api/v1/groceries/", wrapper.Test)
 	router.GET(baseURL+"/api/v1/unit/", wrapper.GetUnits)
 	router.POST(baseURL+"/api/v1/unit/", wrapper.CreateUnit)
+	router.PUT(baseURL+"/api/v1/unit/", wrapper.UpdateUnit)
 	router.DELETE(baseURL+"/api/v1/unit/:id", wrapper.DeleteUnit)
 	router.GET(baseURL+"/api/v1/unit/:id", wrapper.GetUnit)
-	router.PUT(baseURL+"/api/v1/unit/:id", wrapper.UpdateUnit)
 
 }

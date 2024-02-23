@@ -51,7 +51,7 @@ func (repo CrudRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity,
 	results := []model.CrudEntity{}
 
 	for _, v := range result {
-		entity := model.Unit{}.FromInterface(v)
+		entity := target.FromInterface(v)
 		results = append(results, entity)
 	}
 
@@ -72,13 +72,13 @@ func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudE
 	}
 
 	// Convert the result
-	entity := model.Unit{}.FromInterface(result)
+	entity := target.FromInterface(result)
 
 	return entity, nil
 }
 
 // TODO ID BEIM UPDATE RAUS
-func (repo CrudRepository) Update(entity model.CrudEntity, id string) (model.CrudEntity, error) {
+func (repo CrudRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
 	// Get the persistence entity
 	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
 
