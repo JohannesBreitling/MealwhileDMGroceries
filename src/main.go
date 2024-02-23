@@ -5,12 +5,14 @@ import (
 	"mealwhile/api/controller"
 	"mealwhile/data"
 	"mealwhile/logic/operations"
+	"net/http"
 	"os"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -69,6 +71,11 @@ func main() {
 	// Create and start the webserver
 	// --------------------
 	e := echo.New()
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+	}))
 
 	controller.RegisterHandlers(e, &groceryController)
 
