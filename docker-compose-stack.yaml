@@ -3,8 +3,12 @@ services:
     image: johannesbreitling/server:mealwhile
     ports: 
       - 80:8080
-    env_file:
-      - stack.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
     depends_on:
       database:
         condition: service_healthy
@@ -12,8 +16,12 @@ services:
   database:
     image: postgres
     user: postgres
-    env_file:
-      - stack.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
     volumes:
       - data:/var/lib/postgresql/data
     ports:

@@ -40,5 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger webhook using curl
+        #run: | curl --insecure -X POST https://94.16.118.251:9443/api/webhooks/c2cdfca4-c3d3-4a03-aaf7-2fa199eb6b56
         run: |
-          curl --insecure -X POST https://94.16.118.251:9443/api/webhooks/c2cdfca4-c3d3-4a03-aaf7-2fa199eb6b56
+          curl --insecure -X POST https://94.16.118.251:9443/api/stacks/webhooks/00fcbd0d-6f70-4c6f-99a1-21ab7afb675f
