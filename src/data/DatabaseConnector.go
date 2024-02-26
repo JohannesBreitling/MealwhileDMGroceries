@@ -15,7 +15,7 @@ func getDatabaseConnectionString() string {
 	port := os.Getenv("POSTGRES_PORT")
 	db := os.Getenv("POSTGRES_DATABASE")
 
-	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable gssencmode=allow", host, user, password, db, port)
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, db, port)
 
 	return connectionString
 }
