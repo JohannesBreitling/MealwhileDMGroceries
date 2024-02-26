@@ -2,7 +2,7 @@ services:
   groceries:
     image: johannesbreitling/server:mealwhile
     ports: 
-      - 8080:8080
+      - 80:8080
     env_file:
       - stack.env
     depends_on:
