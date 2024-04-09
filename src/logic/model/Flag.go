@@ -21,8 +21,19 @@ func (f *Flag) SetId(id string) {
 func (f *Flag) Empty() CrudEntity {
 	return &Flag{}
 }
+
 func (Flag) EntityName() string {
 	return "flag"
+}
+
+func (f Flag) Attributes() map[string]string {
+	result := make(map[string]string)
+
+	result["id"] = f.Id
+	result["name"] = f.Name
+	result["description"] = f.Description
+
+	return result
 }
 
 func (f Flag) String() string {

@@ -52,6 +52,16 @@ func (u Unit) FromArguments(args map[string]string) CrudEntity {
 	return &unit
 }
 
+func (u Unit) Attributes() map[string]string {
+	result := make(map[string]string)
+
+	result["id"] = u.Id
+	result["name"] = u.Name
+	result["abbreviation"] = u.Abbreviation
+
+	return result
+}
+
 func (u Unit) FromInterface(arg map[string]interface{}) CrudEntity {
 	unit := Unit{}
 

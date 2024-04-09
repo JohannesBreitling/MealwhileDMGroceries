@@ -5,7 +5,7 @@ type CrudEntity interface {
 	SetId(id string)
 
 	Empty() CrudEntity
-	//ToList() []CrudEntity
+	Attributes() map[string]string
 	String() string
 	EntityName() string
 	FromArguments(map[string]string) CrudEntity

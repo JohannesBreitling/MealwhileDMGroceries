@@ -79,7 +79,7 @@ func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudE
 
 // TODO ID BEIM UPDATE RAUS
 func (repo CrudRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
-	// Get the persistence entity
+	// Convert to persistence entity
 	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
 
 	err := repo.db.Save(pe).Error
