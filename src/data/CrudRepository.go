@@ -28,7 +28,8 @@ func (repo CrudRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	err := repo.db.Create(repo.crudMappers.EntityToPersistenceEntity(entity)).Error
 
 	if err != nil {
-		return entity.Empty(), fmt.Errorf("something went wrong when adding the unit to the database")
+		message := fmt.Sprintf("Creation of %s (%s) was not successful", entity.EntityName(), entity.String())
+		return entity.Empty(), NewDBRepositoryError(message)
 	}
 
 	return entity, nil
@@ -44,7 +45,8 @@ func (repo CrudRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity,
 	err := repo.db.Model(petarget).Find(&result).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("something went wrong retrieving the entities")
+		message := fmt.Sprintf("Retrieval of all entities of type %s was not successful", target.EntityName())
+		return nil, NewDBRepositoryError(message)
 	}
 
 	// Convert the results
@@ -67,8 +69,13 @@ func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudE
 	// Find the result
 	err := repo.db.Model(petarget).Where("id = ?", id).Find(&result).Error
 
+	if err == gorm.ErrRecordNotFound || len(result) == 0 {
+		return nil, NewNotFoundRepositoryError(target, fmt.Sprintf("id %s", id))
+	}
+
 	if err != nil {
-		return nil, fmt.Errorf("something went wrong retrieving the entitiy")
+		message := fmt.Sprintf("Retrieval of %s with id %s was not successful", target.EntityName(), id)
+		return nil, NewDBRepositoryError(message)
 	}
 
 	// Convert the result
@@ -77,21 +84,47 @@ func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudE
 	return entity, nil
 }
 
-// TODO ID BEIM UPDATE RAUS
 func (repo CrudRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
+	// Check if the entity exists
+	found, err := repo.Exists(entity, entity.GetId())
+
+	if err != nil {
+		// Some sort of db error has occured
+		return entity.Empty(), err
+	}
+
+	if !found {
+		// The entity that should be updated does not exist
+		return entity.Empty(), NewNotFoundRepositoryError(entity, fmt.Sprintf("id %s", entity.GetId()))
+	}
+
 	// Convert to persistence entity
 	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
 
-	err := repo.db.Save(pe).Error
+	err = repo.db.Save(pe).Error
 
 	if err != nil {
-		return entity.Empty(), fmt.Errorf("something went wrong updating the entity")
+		message := fmt.Sprintf("Something went wrong updating the %s (%s) with id %s", entity.EntityName(), entity.String(), entity.GetId())
+		return entity.Empty(), NewDBRepositoryError(message)
 	}
 
 	return entity, nil
 }
 
 func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
+	// Check if a entity with the given id exists
+	found, err := repo.Exists(entity, id)
+
+	if err != nil {
+		// db error
+		return err
+	}
+
+	if !found {
+		// The entity that should be deleted does not exist
+		return NewNotFoundRepositoryError(entity, fmt.Sprintf("id %s", id))
+	}
+
 	// Get the persistence entity
 	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
 
@@ -111,17 +144,12 @@ func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
 }
 
 func (repo CrudRepository) Exists(entity model.CrudEntity, id string) (bool, error) {
-	// Get the persistence entity
-	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+	_, err := repo.Read(entity, id)
 
-	var result map[string]interface{}
-
-	err := repo.db.Model(pe).Where("id = ?", id).Find(&result).Error
-
-	if err != nil && err == gorm.ErrRecordNotFound {
+	if err != nil && err.(RepositoryError).Code == 1 {
 		return false, nil
 	} else if err != nil {
-		return false, fmt.Errorf("something went wrong updating the entity")
+		return false, err
 	}
 
 	return true, nil

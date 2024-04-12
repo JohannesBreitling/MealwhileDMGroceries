@@ -24,15 +24,20 @@ func NewUnitRepository(db *gorm.DB) UnitRepository {
 }
 
 func (repo UnitRepository) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-
-	_, err := repo.FindByName(entity.Attributes()["name"])
+	name := entity.Attributes()["name"]
+	// Check if the unit with the given name already exists
+	_, err := repo.FindByName(name)
 
 	if err == nil {
-		logrus.Warn("MOIN")
-		return &model.Unit{}, fmt.Errorf("unit already existing")
+		return entity.Empty(), NewAlreadyExistsRepositoryError(entity, fmt.Sprintf("name %s", name))
 	}
 
-	return repo.crudRepo.Create(entity)
+	if err != nil && err.(*RepositoryError).Code == 1 {
+		// Entity not found -> Create the entity
+		return repo.crudRepo.Create(entity)
+	}
+
+	return entity.Empty(), err
 }
 
 func (repo UnitRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
@@ -44,7 +49,27 @@ func (repo UnitRepository) Read(target model.CrudEntity, id string) (model.CrudE
 }
 
 func (repo UnitRepository) Update(target model.CrudEntity) (model.CrudEntity, error) {
-	return repo.crudRepo.Update(target)
+	// Check if the new name clashes with another entity
+	unit := target.(*model.Unit)
+	foundByName, err := repo.FindByName(unit.Name)
+
+	if err != nil && err.(RepositoryError).Code == 1 {
+		// Name does not exist yet
+		return repo.crudRepo.Update(target)
+	}
+
+	if err != nil {
+		// Some sort of db error
+		return &model.Unit{}, err
+	}
+
+	if foundByName.GetId() == target.GetId() {
+		// The found entity is the entity that is tried to be updated
+		return repo.crudRepo.Update(target)
+	}
+
+	// Another entity already has the given name
+	return &model.Unit{}, NewAlreadyExistsRepositoryError(target, fmt.Sprintf("name %s", unit.Name))
 }
 
 func (repo UnitRepository) Delete(target model.CrudEntity, id string) error {
@@ -56,16 +81,23 @@ func (repo UnitRepository) Exists(target model.CrudEntity, id string) (bool, err
 }
 
 func (repo UnitRepository) FindByName(name string) (model.CrudEntity, error) {
-	unit := &persistenceentites.UnitPersistenceEntity{}
+	pe := &persistenceentites.UnitPersistenceEntity{}
 
-	err := repo.db.Find(unit).Where("name = ?", name).Error
+	err := repo.db.Where("name = ?", name).Find(pe).Error
 
 	if err != nil {
-		return &model.Unit{}, fmt.Errorf("something went wrong retrieving the entity")
+		return &model.Unit{}, NewDBRepositoryError(fmt.Sprintf("Something went wrong retrieving the unit with name %s", name))
 	}
 
-	return repo.crudMappers.PersistenceEntityToEntity(*unit), nil
-}
+	unit := repo.crudMappers.PersistenceEntityToEntity(*pe)
 
-// Update(entity persistenceentites.CrudPersistenceEntity) (persistenceentites.CrudPersistenceEntity, error)
-//Delete(entity persistenceentites.CrudPersistenceEntity) error
+	if (err != nil && err == gorm.ErrRecordNotFound) || (*unit.(*model.Unit) == model.Unit{}) {
+		logrus.Warn("Das Entity is eleerr")
+		return &model.Unit{}, NewNotFoundRepositoryError(&model.Unit{}, fmt.Sprintf("name %s", name))
+	} else if err != nil {
+		message := fmt.Sprintf("Something went wrong retrieving the unit with name %s", name)
+		return &model.Unit{}, NewDBRepositoryError(message)
+	}
+
+	return unit, nil
+}

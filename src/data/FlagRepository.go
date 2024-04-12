@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"mealwhile/data/mappers"
 	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/model"
@@ -22,7 +23,20 @@ func NewFlagRepository(db *gorm.DB) FlagRepository {
 }
 
 func (repo FlagRepository) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-	return repo.crudRepo.Create(entity)
+	name := entity.Attributes()["name"]
+	// Check if the unit with the given name already exists
+	_, err := repo.FindByName(name)
+
+	if err == nil {
+		return entity.Empty(), NewAlreadyExistsRepositoryError(entity, fmt.Sprintf("name %s", name))
+	}
+
+	if err != nil && err.(*RepositoryError).Code == 1 {
+		// Entity not found -> Create the entity
+		return repo.crudRepo.Create(entity)
+	}
+
+	return entity.Empty(), err
 }
 
 func (repo FlagRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
@@ -34,7 +48,27 @@ func (repo FlagRepository) Read(target model.CrudEntity, id string) (model.CrudE
 }
 
 func (repo FlagRepository) Update(target model.CrudEntity) (model.CrudEntity, error) {
-	return repo.crudRepo.Update(target)
+	// Check if the new name clashes with another entity
+	flag := target.(*model.Flag)
+	foundByName, err := repo.FindByName(flag.Name)
+
+	if err != nil && err.(RepositoryError).Code == 1 {
+		// Name does not exist yet
+		return repo.crudRepo.Update(target)
+	}
+
+	if err != nil {
+		// Some sort of db error
+		return &model.Flag{}, err
+	}
+
+	if foundByName.GetId() == target.GetId() {
+		// The found entity is the entity that is tried to be updated
+		return repo.crudRepo.Update(target)
+	}
+
+	// Another entity already has the given name
+	return &model.Flag{}, NewAlreadyExistsRepositoryError(target, fmt.Sprintf("name %s", flag.Name))
 }
 
 func (repo FlagRepository) Delete(target model.CrudEntity, id string) error {
@@ -43,4 +77,25 @@ func (repo FlagRepository) Delete(target model.CrudEntity, id string) error {
 
 func (repo FlagRepository) Exists(target model.CrudEntity, id string) (bool, error) {
 	return repo.crudRepo.Exists(target, id)
+}
+
+func (repo FlagRepository) FindByName(name string) (model.CrudEntity, error) {
+	pe := &persistenceentites.FlagPersistenceEntity{}
+
+	err := repo.db.Where("name = ?", name).Find(pe).Error
+
+	if err != nil {
+		return &model.Unit{}, NewDBRepositoryError(fmt.Sprintf("Something went wrong retrieving the flag with name %s", name))
+	}
+
+	flag := repo.crudMappers.PersistenceEntityToEntity(*pe)
+
+	if (err != nil && err == gorm.ErrRecordNotFound) || (*flag.(*model.Flag) == model.Flag{}) {
+		return &model.Flag{}, NewNotFoundRepositoryError(&model.Flag{}, fmt.Sprintf("name %s", name))
+	} else if err != nil {
+		message := fmt.Sprintf("Something went wrong retrieving the flag with name %s", name)
+		return &model.Flag{}, NewDBRepositoryError(message)
+	}
+
+	return flag, nil
 }
