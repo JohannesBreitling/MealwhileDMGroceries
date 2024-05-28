@@ -5,6 +5,9 @@ Mealwhile is an application for planning and executing the event kitchen for dif
 
 For more information check the <a href="https://github.com/JohannesBreitling/MealwhileDocumentation">documentation repository</a>.
 
+## DM Recipes
+The Microservice for the recipes is a domain microservice. It contains the management for recipes, groceries, units and grocery flags (allergies, diets, etc.). It builds the base for the further application but could also be used for other applications.
+
 ## Technical Information
 
 ### OAPI Codegeneration
