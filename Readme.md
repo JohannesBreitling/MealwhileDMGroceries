@@ -9,7 +9,7 @@ For more information check the <a href="https://github.com/JohannesBreitling/Mea
 
 ### OAPI Codegeneration
 The ```server.gen.go``` and the ```server-model.gen.go``` are generated automatically from the api specification by the <a href="https://github.com/deepmap/oapi-codegen">oapi-codegen package</a>.
-To regenerate the files use the following commands:
+To regenerate the files use the following commands (Execute in the api controller package):
 ``````
 oapi-codegen -package controller -generate types ../spec/mealwhile-api.yaml > server-model.gen.go
 ``````

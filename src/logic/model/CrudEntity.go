@@ -8,6 +8,6 @@ type CrudEntity interface {
 	Attributes() map[string]string
 	String() string
 	EntityName() string
-	FromArguments(map[string]string) CrudEntity
+	// FromArguments(map[string]string) CrudEntity
 	FromInterface(map[string]interface{}) CrudEntity
 }

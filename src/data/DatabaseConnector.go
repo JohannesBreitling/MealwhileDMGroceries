@@ -6,6 +6,8 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"mealwhile/errors"
 )
 
 func getDatabaseConnectionString() string {
@@ -24,5 +26,10 @@ func ConnectToDatabase() (*gorm.DB, error) {
 	connectionString := getDatabaseConnectionString()
 
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+
+	if err != nil {
+		return nil, errors.NewServerError("something went wrong creating the database")
+	}
+
 	return db, err
 }

@@ -28,9 +28,36 @@ type ServerInterface interface {
 	// Get one flag with specified id
 	// (GET /api/v1/flag/{id})
 	GetFlag(ctx echo.Context, id Id) error
-	// First test route to check the functionality of the server, the codegen, etc.
-	// (GET /api/v1/groceries/)
-	Test(ctx echo.Context) error
+	// Get all groceries
+	// (GET /api/v1/grocery/)
+	GetGroceries(ctx echo.Context) error
+	// Create a new grocery
+	// (POST /api/v1/grocery/)
+	CreateGrocery(ctx echo.Context) error
+	// Update an existing grocery
+	// (PUT /api/v1/grocery/)
+	UpdateGrocery(ctx echo.Context) error
+	// Delete one grocery
+	// (DELETE /api/v1/grocery/{id})
+	DeleteGrocery(ctx echo.Context, id Id) error
+	// Get one grocery with specified id
+	// (GET /api/v1/grocery/{id})
+	GetGrocery(ctx echo.Context, id Id) error
+	// Get all recipes
+	// (GET /api/v1/recipe/)
+	// TODO GetRecipes(ctx echo.Context) error
+	// Create a new recipe
+	// (POST /api/v1/recipe/)
+	// TODO CreateRecipe(ctx echo.Context) error
+	// Update an existing recipe
+	// (PUT /api/v1/recipe/)
+	// TODO UpdateRecipe(ctx echo.Context) error
+	// Delete one recipe
+	// (DELETE /api/v1/recipe/{id})
+	// TODO DeleteRecipe(ctx echo.Context, id Id) error
+	// Get one recipe with specified id
+	// (GET /api/v1/recipe/{id})
+	// TODO GetRecipe(ctx echo.Context, id Id) error
 	// Get all units
 	// (GET /api/v1/unit/)
 	GetUnits(ctx echo.Context) error
@@ -112,14 +139,127 @@ func (w *ServerInterfaceWrapper) GetFlag(ctx echo.Context) error {
 	return err
 }
 
-// Test converts echo context to params.
-func (w *ServerInterfaceWrapper) Test(ctx echo.Context) error {
+// GetGroceries converts echo context to params.
+func (w *ServerInterfaceWrapper) GetGroceries(ctx echo.Context) error {
 	var err error
 
 	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.Test(ctx)
+	err = w.Handler.GetGroceries(ctx)
 	return err
 }
+
+// CreateGrocery converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateGrocery(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateGrocery(ctx)
+	return err
+}
+
+// UpdateGrocery converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateGrocery(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateGrocery(ctx)
+	return err
+}
+
+// DeleteGrocery converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteGrocery(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteGrocery(ctx, id)
+	return err
+}
+
+// GetGrocery converts echo context to params.
+func (w *ServerInterfaceWrapper) GetGrocery(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetGrocery(ctx, id)
+	return err
+}
+
+/* TODO
+
+// GetRecipes converts echo context to params.
+func (w *ServerInterfaceWrapper) GetRecipes(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetRecipes(ctx)
+	return err
+}
+
+// CreateRecipe converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateRecipe(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.CreateRecipe(ctx)
+	return err
+}
+
+// UpdateRecipe converts echo context to params.
+func (w *ServerInterfaceWrapper) UpdateRecipe(ctx echo.Context) error {
+	var err error
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.UpdateRecipe(ctx)
+	return err
+}
+
+// DeleteRecipe converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteRecipe(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.DeleteRecipe(ctx, id)
+	return err
+}
+
+// GetRecipe converts echo context to params.
+func (w *ServerInterfaceWrapper) GetRecipe(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "id" -------------
+	var id Id
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.GetRecipe(ctx, id)
+	return err
+}
+
+*/
 
 // GetUnits converts echo context to params.
 func (w *ServerInterfaceWrapper) GetUnits(ctx echo.Context) error {
@@ -213,7 +353,16 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/api/v1/flag/", wrapper.UpdateFlag)
 	router.DELETE(baseURL+"/api/v1/flag/:id", wrapper.DeleteFlag)
 	router.GET(baseURL+"/api/v1/flag/:id", wrapper.GetFlag)
-	router.GET(baseURL+"/api/v1/groceries/", wrapper.Test)
+	router.GET(baseURL+"/api/v1/grocery/", wrapper.GetGroceries)
+	router.POST(baseURL+"/api/v1/grocery/", wrapper.CreateGrocery)
+	router.PUT(baseURL+"/api/v1/grocery/", wrapper.UpdateGrocery)
+	router.DELETE(baseURL+"/api/v1/grocery/:id", wrapper.DeleteGrocery)
+	router.GET(baseURL+"/api/v1/grocery/:id", wrapper.GetGrocery)
+	// TODO router.GET(baseURL+"/api/v1/recipe/", wrapper.GetRecipes)
+	// TODO router.POST(baseURL+"/api/v1/recipe/", wrapper.CreateRecipe)
+	// TODO router.PUT(baseURL+"/api/v1/recipe/", wrapper.UpdateRecipe)
+	// TODO router.DELETE(baseURL+"/api/v1/recipe/:id", wrapper.DeleteRecipe)
+	// TODO router.GET(baseURL+"/api/v1/recipe/:id", wrapper.GetRecipe)
 	router.GET(baseURL+"/api/v1/unit/", wrapper.GetUnits)
 	router.POST(baseURL+"/api/v1/unit/", wrapper.CreateUnit)
 	router.PUT(baseURL+"/api/v1/unit/", wrapper.UpdateUnit)

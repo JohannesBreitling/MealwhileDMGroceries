@@ -16,21 +16,12 @@ tags:
     description: A unit describes an amount of food.
   - name: flag
     description: A flag describes an (chemical / biological) ingredient of a grocery, e. g. an allergy or some sort of dietry
+  - name: grocery
+    description: A grocery describes some sort of food including the flags that the grocery fulfills
+  - name: recipe
+    description: A recipe is a collection of ingredients (grocery, unit, amount) and a description and a collection of steps to create some sort of meal
 
 paths:
-  /api/v1/groceries/:
-    get:
-      operationId: test
-      summary: First test route to check the functionality of the server, the codegen, etc.
-      responses:
-        '200':
-          description: The test was successful
-          content:
-            application/json:
-              schema:
-                type: string
-                example: Das hat funktioniert!
-  
   # Section for the Units
   /api/v1/unit/:
     # Create new unit
@@ -218,6 +209,194 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/flag'
+  
+  # Section for the groceries
+  /api/v1/grocery/:
+    # Create new grocery
+    post:
+      operationId: createGrocery
+      tags:
+        - grocery
+      summary: Create a new grocery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grocery'
+      responses:
+        '200':
+          description: Successful creation of grocery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grocery'
+    # Get all groceries
+    get:
+      operationId: getGroceries
+      tags:
+        - grocery
+      summary: Get all groceries
+      responses:
+        '200':
+          description: Sucessful retrieval of all groceries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/grocery'
+    # Update an existing grocery
+    put:
+      operationId: updateGrocery
+      tags:
+        - grocery
+      summary: Update an existing grocery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grocery'
+      responses:
+        '200':
+          description: Successful update of grocery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grocery'
+  /api/v1/grocery/{id}:
+    # Get a specific grocery
+    get:
+      operationId: getGrocery
+      tags:
+        - grocery
+      summary: Get one grocery with specified id
+      parameters:
+        - name: id
+          in: path
+          description: Id of the grocery
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful retrieval of the grocery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grocery'
+    delete:
+      operationId: deleteGrocery
+      tags:
+        - grocery
+      summary: Delete one grocery
+      parameters:
+        - name: id
+          in: path
+          description: Id of the grocery
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful deletion of the grocery
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/grocery'
+  
+  # Section for the recipes
+  /api/v1/recipe/:
+    # Create new recpie
+    post:
+      operationId: createRecipe
+      tags:
+        - recipe
+      summary: Create a new recipe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipe'
+      responses:
+        '200':
+          description: Successful creation of recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+    # Get all recipes
+    get:
+      operationId: getRecipes
+      tags:
+        - recipe
+      summary: Get all recipes
+      responses:
+        '200':
+          description: Sucessful retrieval of all recipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/recipe'
+    # Update an existing recipe
+    put:
+      operationId: updateRecipe
+      tags:
+        - recipe
+      summary: Update an existing recipe
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipe'
+      responses:
+        '200':
+          description: Successful update of recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+  /api/v1/recipe/{id}:
+    # Get a specific recipe
+    get:
+      operationId: getRecipe
+      tags:
+        - recipe
+      summary: Get one recipe with specified id
+      parameters:
+        - name: id
+          in: path
+          description: Id of the recipe
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful retrieval of the recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
+    delete:
+      operationId: deleteRecipe
+      tags:
+        - recipe
+      summary: Delete one recipe
+      parameters:
+        - name: id
+          in: path
+          description: Id of the recipe
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Sucessful deletion of the recipe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipe'
 
 components:
   schemas:
@@ -249,5 +428,48 @@ components:
           example: Hazelnut
         description:
           type: string
-          description: Description of the respective grocery flag. It can desrcibe allergies or different 
+          description: Description of the respective grocery flag. It can desrcibe allergies or dietries
           example: The grocery contains hazelnuts.
+    grocery:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: Name of the grocery
+          example: Hackfleisch (gemischt)
+        flags:
+          type: array
+          description: The grocery flags contained by the grocery
+          items:
+            $ref: '#/components/schemas/flag'
+    ingredient:
+      type: object
+      properties:
+        grocery:
+          $ref: '#/components/schemas/grocery'
+        unit:
+          $ref: '#/components/schemas/unit'
+        amount:
+          type: number
+    recipe:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: The name of the recipe
+          example: Spaghetti Bolognese
+        description:
+          type: string
+          description: The description of the recipe
+        steps:
+          type: array
+          items:
+            type: string
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/ingredient'

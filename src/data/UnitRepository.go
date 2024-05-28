@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"mealwhile/data/mappers"
 	persistenceentites "mealwhile/data/persistenceentities"
+	"mealwhile/errors"
 	"mealwhile/logic/model"
 
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -29,10 +29,10 @@ func (repo UnitRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	_, err := repo.FindByName(name)
 
 	if err == nil {
-		return entity.Empty(), NewAlreadyExistsRepositoryError(entity, fmt.Sprintf("name %s", name))
+		return entity.Empty(), errors.NewEntityAlreadyExists(entity, fmt.Sprintf("name %s", name))
 	}
 
-	if err != nil && err.(*RepositoryError).Code == 1 {
+	if err != nil && err.(errors.AppError).Code == 404 {
 		// Entity not found -> Create the entity
 		return repo.crudRepo.Create(entity)
 	}
@@ -53,7 +53,7 @@ func (repo UnitRepository) Update(target model.CrudEntity) (model.CrudEntity, er
 	unit := target.(*model.Unit)
 	foundByName, err := repo.FindByName(unit.Name)
 
-	if err != nil && err.(RepositoryError).Code == 1 {
+	if err != nil && err.(errors.AppError).Code == 404 {
 		// Name does not exist yet
 		return repo.crudRepo.Update(target)
 	}
@@ -69,7 +69,7 @@ func (repo UnitRepository) Update(target model.CrudEntity) (model.CrudEntity, er
 	}
 
 	// Another entity already has the given name
-	return &model.Unit{}, NewAlreadyExistsRepositoryError(target, fmt.Sprintf("name %s", unit.Name))
+	return &model.Unit{}, errors.NewEntityAlreadyExists(target, fmt.Sprintf("name %s", unit.Name))
 }
 
 func (repo UnitRepository) Delete(target model.CrudEntity, id string) error {
@@ -86,17 +86,16 @@ func (repo UnitRepository) FindByName(name string) (model.CrudEntity, error) {
 	err := repo.db.Where("name = ?", name).Find(pe).Error
 
 	if err != nil {
-		return &model.Unit{}, NewDBRepositoryError(fmt.Sprintf("Something went wrong retrieving the unit with name %s", name))
+		return &model.Unit{}, errors.NewServerError(fmt.Sprintf("Something went wrong retrieving the unit with name %s", name))
 	}
 
 	unit := repo.crudMappers.PersistenceEntityToEntity(*pe)
 
 	if (err != nil && err == gorm.ErrRecordNotFound) || (*unit.(*model.Unit) == model.Unit{}) {
-		logrus.Warn("Das Entity is eleerr")
-		return &model.Unit{}, NewNotFoundRepositoryError(&model.Unit{}, fmt.Sprintf("name %s", name))
+		return &model.Unit{}, errors.NewEntityNotFound(&model.Unit{}, fmt.Sprintf("name %s", name))
 	} else if err != nil {
 		message := fmt.Sprintf("Something went wrong retrieving the unit with name %s", name)
-		return &model.Unit{}, NewDBRepositoryError(message)
+		return &model.Unit{}, errors.NewServerError(message)
 	}
 
 	return unit, nil

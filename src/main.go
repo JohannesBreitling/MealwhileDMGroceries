@@ -41,17 +41,21 @@ func main() {
 	// Create the repositories
 	unitRepository := data.NewUnitRepository(db)
 	flagRepository := data.NewFlagRepository(db)
+	groceryRepository := data.NewGroceryRepository(db)
 
 	// Create the CrudServices
 	unitCrudService := operations.NewCrudService(unitRepository)
 	flagCrudService := operations.NewCrudService(flagRepository)
+	groceryCrudService := operations.NewCrudService(groceryRepository)
 
 	// Create the operations
 	unitOperations := operations.NewUnitOperations(unitCrudService)
 	flagOperations := operations.NewFlagOperations(flagCrudService)
+	groceryOperations := operations.NewGroceryOperations(groceryCrudService)
+	flagOperations.SetGroceryOperations(&groceryOperations)
+	groceryOperations.SetFlagOperations(&flagOperations)
 
 	// Create the controllers
-
 	unitExpectedCrudArguments := controller.ExpectedCrudArguments{
 		Create: []string{"name", "abbreviation"},
 		Update: []string{"id", "name", "abbreviation"},
@@ -62,10 +66,22 @@ func main() {
 		Update: []string{"id", "name", "description"},
 	}
 
+	groceryExpectedCrudArguments := controller.ExpectedCrudArguments{
+		Create: []string{"name", "flagIds"},
+		Update: []string{"id", "name", "flagIds"},
+	}
+
+	// TODO recipeExpectedCrudArguments := controller.ExpectedCrudArguments{
+	//	Create: []string{"name", "description"},
+	//	Update: []string{"id", "name", "description"},
+	//}
+
 	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments)
 	flagCrudController := controller.NewCrudController(flagOperations, flagExpectedCrudArguments)
+	groceryCrudController := controller.NewCrudController(groceryOperations, groceryExpectedCrudArguments)
+	// TODO recipeCrudController := controller.NewCrudController()
 
-	groceryController := controller.NewGroceryController(unitOperations, unitCrudController, flagOperations, flagCrudController)
+	groceryController := controller.NewGroceryController(unitOperations, unitCrudController, flagOperations, flagCrudController, groceryOperations, groceryCrudController)
 
 	// --------------------
 	// Create and start the webserver

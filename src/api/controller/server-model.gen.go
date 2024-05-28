@@ -5,7 +5,7 @@ package controller
 
 // Flag defines model for flag.
 type Flag struct {
-	// Description Description of the respective grocery flag. It can desrcibe allergies or different
+	// Description Description of the respective grocery flag. It can desrcibe allergies or dietries
 	Description *string `json:"description,omitempty"`
 
 	// Id Identifier for Mealwhile enitites
@@ -15,8 +15,41 @@ type Flag struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// Grocery defines model for grocery.
+type Grocery struct {
+	// Flags The grocery flags contained by the grocery
+	Flags *[]Flag `json:"flags,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id *Id `json:"id,omitempty"`
+
+	// Name Name of the grocery
+	Name *string `json:"name,omitempty"`
+}
+
 // Id Identifier for Mealwhile enitites
 type Id = string
+
+// Ingredient defines model for ingredient.
+type Ingredient struct {
+	Amount  *float32 `json:"amount,omitempty"`
+	Grocery *Grocery `json:"grocery,omitempty"`
+	Unit    *Unit    `json:"unit,omitempty"`
+}
+
+// Recipe defines model for recipe.
+type Recipe struct {
+	// Description The description of the recipe
+	Description *string `json:"description,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id          *Id           `json:"id,omitempty"`
+	Ingredients *[]Ingredient `json:"ingredients,omitempty"`
+
+	// Name The name of the recipe
+	Name  *string   `json:"name,omitempty"`
+	Steps *[]string `json:"steps,omitempty"`
+}
 
 // Unit defines model for unit.
 type Unit struct {
@@ -35,6 +68,18 @@ type CreateFlagJSONRequestBody = Flag
 
 // UpdateFlagJSONRequestBody defines body for UpdateFlag for application/json ContentType.
 type UpdateFlagJSONRequestBody = Flag
+
+// CreateGroceryJSONRequestBody defines body for CreateGrocery for application/json ContentType.
+type CreateGroceryJSONRequestBody = Grocery
+
+// UpdateGroceryJSONRequestBody defines body for UpdateGrocery for application/json ContentType.
+type UpdateGroceryJSONRequestBody = Grocery
+
+// CreateRecipeJSONRequestBody defines body for CreateRecipe for application/json ContentType.
+type CreateRecipeJSONRequestBody = Recipe
+
+// UpdateRecipeJSONRequestBody defines body for UpdateRecipe for application/json ContentType.
+type UpdateRecipeJSONRequestBody = Recipe
 
 // CreateUnitJSONRequestBody defines body for CreateUnit for application/json ContentType.
 type CreateUnitJSONRequestBody = Unit

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mealwhile/data/mappers"
 	persistenceentites "mealwhile/data/persistenceentities"
+	"mealwhile/errors"
 	"mealwhile/logic/model"
 
 	"gorm.io/gorm"
@@ -28,10 +29,10 @@ func (repo FlagRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	_, err := repo.FindByName(name)
 
 	if err == nil {
-		return entity.Empty(), NewAlreadyExistsRepositoryError(entity, fmt.Sprintf("name %s", name))
+		return entity.Empty(), errors.NewEntityAlreadyExists(entity, fmt.Sprintf("name %s", name))
 	}
 
-	if err != nil && err.(*RepositoryError).Code == 1 {
+	if err != nil && err.(errors.AppError).Code == 404 {
 		// Entity not found -> Create the entity
 		return repo.crudRepo.Create(entity)
 	}
@@ -52,7 +53,7 @@ func (repo FlagRepository) Update(target model.CrudEntity) (model.CrudEntity, er
 	flag := target.(*model.Flag)
 	foundByName, err := repo.FindByName(flag.Name)
 
-	if err != nil && err.(RepositoryError).Code == 1 {
+	if err != nil && err.(errors.AppError).Code == 404 {
 		// Name does not exist yet
 		return repo.crudRepo.Update(target)
 	}
@@ -68,7 +69,7 @@ func (repo FlagRepository) Update(target model.CrudEntity) (model.CrudEntity, er
 	}
 
 	// Another entity already has the given name
-	return &model.Flag{}, NewAlreadyExistsRepositoryError(target, fmt.Sprintf("name %s", flag.Name))
+	return &model.Flag{}, errors.NewEntityAlreadyExists(target, fmt.Sprintf("name %s", target.(*model.Flag).Name))
 }
 
 func (repo FlagRepository) Delete(target model.CrudEntity, id string) error {
@@ -85,16 +86,16 @@ func (repo FlagRepository) FindByName(name string) (model.CrudEntity, error) {
 	err := repo.db.Where("name = ?", name).Find(pe).Error
 
 	if err != nil {
-		return &model.Unit{}, NewDBRepositoryError(fmt.Sprintf("Something went wrong retrieving the flag with name %s", name))
+		return &model.Unit{}, errors.NewServerError(fmt.Sprintf("Something went wrong retrieving the flag with name %s", name))
 	}
 
 	flag := repo.crudMappers.PersistenceEntityToEntity(*pe)
 
 	if (err != nil && err == gorm.ErrRecordNotFound) || (*flag.(*model.Flag) == model.Flag{}) {
-		return &model.Flag{}, NewNotFoundRepositoryError(&model.Flag{}, fmt.Sprintf("name %s", name))
+		return &model.Flag{}, errors.NewEntityNotFound(&model.Flag{}, fmt.Sprintf("name %s", name))
 	} else if err != nil {
 		message := fmt.Sprintf("Something went wrong retrieving the flag with name %s", name)
-		return &model.Flag{}, NewDBRepositoryError(message)
+		return &model.Flag{}, errors.NewServerError(message)
 	}
 
 	return flag, nil

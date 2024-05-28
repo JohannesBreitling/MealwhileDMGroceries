@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"mealwhile/data"
+	"mealwhile/errors"
 	"mealwhile/logic/model"
 )
 
@@ -22,14 +23,13 @@ func (service CrudService) exists(entity model.CrudEntity, id string) error {
 	}
 
 	if !exists {
-		return fmt.Errorf(fmt.Sprintf("the entity with id %s does not exist", id))
+		return errors.NewEntityNotFound(entity, fmt.Sprintf("id %s", id))
 	}
 
 	return nil
 }
 
 func (service CrudService) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-	// TODO Advanced: Check if entity (name / abbr) already exists
 	return service.repo.Create(entity)
 }
 
