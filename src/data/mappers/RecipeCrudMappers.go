@@ -19,7 +19,7 @@ func (RecipeMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceent
 }
 
 func (RecipeMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenceEntity) model.CrudEntity {
-	fpe := pe.(persistenceentites.FlagPersistenceEntity)
+	fpe := pe.(*persistenceentites.FlagPersistenceEntity)
 
 	return &model.Flag{
 		Id:          fpe.Id,

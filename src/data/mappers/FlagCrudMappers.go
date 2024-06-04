@@ -3,6 +3,7 @@ package mappers
 import (
 	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/model"
+	"reflect"
 )
 
 type FlagMapper struct {
@@ -19,7 +20,15 @@ func (FlagMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceentit
 }
 
 func (FlagMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenceEntity) model.CrudEntity {
-	fpe := pe.(persistenceentites.FlagPersistenceEntity)
+	var fpe persistenceentites.FlagPersistenceEntity
+	switch reflect.TypeOf(pe) {
+	case reflect.TypeOf(persistenceentites.FlagPersistenceEntity{}):
+		fpe = pe.(persistenceentites.FlagPersistenceEntity)
+	case reflect.TypeOf(&persistenceentites.FlagPersistenceEntity{}):
+		fpe = *(pe.(*persistenceentites.FlagPersistenceEntity))
+	default:
+		fpe = persistenceentites.FlagPersistenceEntity{}
+	}
 
 	return &model.Flag{
 		Id:          fpe.Id,

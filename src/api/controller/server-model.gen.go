@@ -15,10 +15,34 @@ type Flag struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// FlagRequest defines model for flagRequest.
+type FlagRequest struct {
+	// Description Description of the respective grocery flag. It can desrcibe allergies or dietries
+	Description *string `json:"description,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id *Id `json:"id,omitempty"`
+
+	// Name Name of the flag
+	Name *string `json:"name,omitempty"`
+}
+
 // Grocery defines model for grocery.
 type Grocery struct {
 	// Flags The grocery flags contained by the grocery
 	Flags *[]Flag `json:"flags,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id *Id `json:"id,omitempty"`
+
+	// Name Name of the grocery
+	Name *string `json:"name,omitempty"`
+}
+
+// GroceryRequest defines model for groceryRequest.
+type GroceryRequest struct {
+	// Flags The grocery flags contained by the grocery
+	Flags *[]Id `json:"flags,omitempty"`
 
 	// Id Identifier for Mealwhile enitites
 	Id *Id `json:"id,omitempty"`
@@ -51,6 +75,20 @@ type Recipe struct {
 	Steps *[]string `json:"steps,omitempty"`
 }
 
+// RecipeRequest defines model for recipeRequest.
+type RecipeRequest struct {
+	// Description The description of the recipe
+	Description *string `json:"description,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id          *Id           `json:"id,omitempty"`
+	Ingredients *[]Ingredient `json:"ingredients,omitempty"`
+
+	// Name The name of the recipe
+	Name  *string   `json:"name,omitempty"`
+	Steps *[]string `json:"steps,omitempty"`
+}
+
 // Unit defines model for unit.
 type Unit struct {
 	// Abbreviation Abbreviation of the unit in recipes
@@ -63,26 +101,38 @@ type Unit struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// UnitRequest defines model for unitRequest.
+type UnitRequest struct {
+	// Abbreviation Abbreviation of the unit in recipes
+	Abbreviation *string `json:"abbreviation,omitempty"`
+
+	// Id Identifier for Mealwhile enitites
+	Id *Id `json:"id,omitempty"`
+
+	// Name Name of the unit
+	Name *string `json:"name,omitempty"`
+}
+
 // CreateFlagJSONRequestBody defines body for CreateFlag for application/json ContentType.
-type CreateFlagJSONRequestBody = Flag
+type CreateFlagJSONRequestBody = FlagRequest
 
 // UpdateFlagJSONRequestBody defines body for UpdateFlag for application/json ContentType.
-type UpdateFlagJSONRequestBody = Flag
+type UpdateFlagJSONRequestBody = FlagRequest
 
 // CreateGroceryJSONRequestBody defines body for CreateGrocery for application/json ContentType.
-type CreateGroceryJSONRequestBody = Grocery
+type CreateGroceryJSONRequestBody = GroceryRequest
 
 // UpdateGroceryJSONRequestBody defines body for UpdateGrocery for application/json ContentType.
-type UpdateGroceryJSONRequestBody = Grocery
+type UpdateGroceryJSONRequestBody = GroceryRequest
 
 // CreateRecipeJSONRequestBody defines body for CreateRecipe for application/json ContentType.
-type CreateRecipeJSONRequestBody = Recipe
+type CreateRecipeJSONRequestBody = RecipeRequest
 
 // UpdateRecipeJSONRequestBody defines body for UpdateRecipe for application/json ContentType.
-type UpdateRecipeJSONRequestBody = Recipe
+type UpdateRecipeJSONRequestBody = RecipeRequest
 
 // CreateUnitJSONRequestBody defines body for CreateUnit for application/json ContentType.
-type CreateUnitJSONRequestBody = Unit
+type CreateUnitJSONRequestBody = UnitRequest
 
 // UpdateUnitJSONRequestBody defines body for UpdateUnit for application/json ContentType.
-type UpdateUnitJSONRequestBody = Unit
+type UpdateUnitJSONRequestBody = UnitRequest

@@ -8,22 +8,23 @@ import (
 )
 
 type CrudService struct {
-	repo data.CrudRepositoryInterface
+	repo   data.CrudRepositoryInterface
+	target model.CrudEntity
 }
 
-func NewCrudService(repo data.CrudRepositoryInterface) CrudService {
-	return CrudService{repo: repo}
+func NewCrudService(repo data.CrudRepositoryInterface, target model.CrudEntity) CrudService {
+	return CrudService{repo: repo, target: target}
 }
 
-func (service CrudService) exists(entity model.CrudEntity, id string) error {
-	exists, err := service.repo.Exists(entity, id)
+func (service CrudService) exists(id string) error {
+	exists, err := service.repo.Exists(id)
 
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		return errors.NewEntityNotFound(entity, fmt.Sprintf("id %s", id))
+		return errors.NewEntityNotFound(service.target, fmt.Sprintf("id %s", id))
 	}
 
 	return nil
@@ -33,22 +34,22 @@ func (service CrudService) Create(entity model.CrudEntity) (model.CrudEntity, er
 	return service.repo.Create(entity)
 }
 
-func (service CrudService) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
-	return service.repo.ReadAll(target)
+func (service CrudService) ReadAll() ([]model.CrudEntity, error) {
+	return service.repo.ReadAll()
 }
 
-func (service CrudService) Read(entity model.CrudEntity, id string) (model.CrudEntity, error) {
-	err := service.exists(entity.Empty(), id)
+func (service CrudService) Read(id string) (model.CrudEntity, error) {
+	err := service.exists(id)
 
 	if err != nil {
-		return entity.Empty(), err
+		return service.target.Empty(), err
 	}
 
-	return service.repo.Read(entity, id)
+	return service.repo.Read(id)
 }
 
 func (service CrudService) Update(entity model.CrudEntity) (model.CrudEntity, error) {
-	err := service.exists(entity.Empty(), entity.GetId())
+	err := service.exists(entity.GetId())
 
 	if err != nil {
 		return entity.Empty(), err
@@ -57,12 +58,12 @@ func (service CrudService) Update(entity model.CrudEntity) (model.CrudEntity, er
 	return service.repo.Update(entity)
 }
 
-func (service CrudService) Delete(target model.CrudEntity, id string) error {
-	err := service.exists(target, id)
+func (service CrudService) Delete(id string) error {
+	err := service.exists(id)
 
 	if err != nil {
 		return err
 	}
 
-	return service.repo.Delete(target, id)
+	return service.repo.Delete(id)
 }

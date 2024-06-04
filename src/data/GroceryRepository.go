@@ -6,9 +6,10 @@ import (
 	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/errors"
 	"mealwhile/logic/model"
-	"slices"
 
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type GroceryRepository struct {
@@ -19,13 +20,15 @@ type GroceryRepository struct {
 
 func NewGroceryRepository(db *gorm.DB) GroceryRepository {
 	db.AutoMigrate(&persistenceentites.GroceryPersistenceEntity{})
-	crudMappers := mappers.GroceryMapper{}
-	crudRepo := NewCrudRepository(db, &persistenceentites.GroceryPersistenceEntity{}, crudMappers)
+	db.Session(&gorm.Session{}).Updates(&persistenceentites.GroceryPersistenceEntity{})
+	flagMapper := mappers.FlagMapper{}
+	crudMappers := mappers.NewGroceryMapper(&flagMapper)
+	crudRepo := NewCrudRepository(db, &persistenceentites.GroceryPersistenceEntity{}, crudMappers, &model.Grocery{})
 	return GroceryRepository{db: db, crudRepo: crudRepo, crudMappers: crudMappers}
 }
 
 func (repo GroceryRepository) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-	name := entity.Attributes()["name"]
+	name := entity.Attributes()["name"].(string)
 	// Check if the grocery with the given name already exists
 	_, err := repo.FindByName(name)
 
@@ -41,44 +44,101 @@ func (repo GroceryRepository) Create(entity model.CrudEntity) (model.CrudEntity,
 	return entity.Empty(), err
 }
 
-func (repo GroceryRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
-	return repo.crudRepo.ReadAll(target)
-}
-
-func (repo GroceryRepository) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
-	return repo.crudRepo.Read(target, id)
-}
-
-func (repo GroceryRepository) Update(target model.CrudEntity) (model.CrudEntity, error) {
-	// Check if the new name clashes with another entity
-	grocery := target.(*model.Grocery)
-	foundByName, err := repo.FindByName(grocery.Name)
-
-	if err != nil && err.(errors.AppError).Code == 404 {
-		// Name does not exist yet
-		return repo.crudRepo.Update(target)
-	}
+func (repo GroceryRepository) ReadAll() ([]model.CrudEntity, error) {
+	pes := []persistenceentites.GroceryPersistenceEntity{}
+	err := repo.db.Preload(clause.Associations).Model(&persistenceentites.GroceryPersistenceEntity{}).Find(&pes).Error
 
 	if err != nil {
+		return nil, errors.NewServerError("Something went wrong retrieving the groceries")
+	}
+
+	var result []model.CrudEntity
+
+	for _, gpe := range pes {
+		grocery := repo.crudMappers.PersistenceEntityToEntity(gpe)
+		result = append(result, grocery)
+	}
+
+	return result, nil
+}
+
+func (repo GroceryRepository) Read(id string) (model.CrudEntity, error) {
+	pe := persistenceentites.GroceryPersistenceEntity{}
+	err := repo.db.Preload(clause.Associations).Model(&persistenceentites.GroceryPersistenceEntity{}).Where("id = ?", id).Find(&pe).Error
+
+	if err != nil {
+		return nil, errors.NewServerError(fmt.Sprintf("Something went wrong retrieving the grocery with id %s", id))
+	}
+
+	result := repo.crudMappers.PersistenceEntityToEntity(pe)
+
+	return result, nil
+}
+
+func (repo GroceryRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
+	// Check if the new name clashes with another entity
+	grocery := entity.(*model.Grocery)
+	foundByName, err := repo.FindByName(grocery.Name)
+
+	if err != nil && err.(errors.AppError).Code != 404 {
 		// Some sort of db error
 		return &model.Grocery{}, err
 	}
 
-	if foundByName.GetId() == target.GetId() {
-		// The found entity is the entity that is tried to be updated
-		return repo.crudRepo.Update(target)
+	logrus.Warn("FOUND BY NAME", foundByName)
+
+	if foundByName.GetId() != "" && foundByName.GetId() != entity.GetId() {
+		// Another entity already has the given name
+		return &model.Grocery{}, errors.NewEntityAlreadyExists(entity, fmt.Sprintf("name %s", grocery.Name))
 	}
 
-	// Another entity already has the given name
-	return &model.Grocery{}, errors.NewEntityAlreadyExists(target, fmt.Sprintf("name %s", grocery.Name))
+	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+
+	// Clear the associations of the grocery
+	err = repo.db.Model(&pe).Association("Flags").Replace(pe.(persistenceentites.GroceryPersistenceEntity).Flags)
+
+	if err != nil {
+		return nil, errors.NewServerError(fmt.Sprintf("Something went wrong updating the grocery with id %s", pe.GetId()))
+	}
+
+	gpe := pe.(persistenceentites.GroceryPersistenceEntity)
+	err = repo.db.Save(&gpe).Error
+
+	if err != nil {
+		return nil, errors.NewServerError(fmt.Sprintf("Something went wrong updating the grocery with id %s", pe.GetId()))
+	}
+
+	return repo.crudMappers.PersistenceEntityToEntity(pe), nil
 }
 
-func (repo GroceryRepository) Delete(target model.CrudEntity, id string) error {
-	return repo.crudRepo.Delete(target, id)
+func (repo GroceryRepository) Delete(id string) error {
+	// Get the persistence entity, if it exists
+	pe, err := repo.ReadPe(id)
+
+	if err != nil {
+		return err
+	}
+
+	gpe := (*pe).(persistenceentites.GroceryPersistenceEntity)
+
+	// Clear the associations of the grocery
+	err = repo.db.Model(&gpe).Association("Flags").Clear()
+
+	if err != nil {
+		return errors.NewServerError(fmt.Sprintf("Something went wrong deleting the grocery with id %s", id))
+	}
+
+	err = repo.db.Model(&persistenceentites.GroceryPersistenceEntity{}).Delete(&gpe).Error
+
+	if err != nil {
+		return errors.NewServerError(fmt.Sprintf("Something went wrong deleting the grocery with id %s", id))
+	}
+
+	return nil
 }
 
-func (repo GroceryRepository) Exists(target model.CrudEntity, id string) (bool, error) {
-	return repo.crudRepo.Exists(target, id)
+func (repo GroceryRepository) Exists(id string) (bool, error) {
+	return repo.crudRepo.Exists(id)
 }
 
 func (repo GroceryRepository) FindByName(name string) (model.CrudEntity, error) {
@@ -104,17 +164,32 @@ func (repo GroceryRepository) FindByName(name string) (model.CrudEntity, error) 
 }
 
 func (repo GroceryRepository) FlagReferenced(flagId string) (bool, error) {
-	groceries, err := repo.ReadAll(&model.Grocery{})
+	groceries, err := repo.ReadAll()
 
 	if err != nil {
 		return false, err
 	}
 
 	for _, grocery := range groceries {
-		if slices.Contains(grocery.(*model.Grocery).FlagIds, flagId) {
-			return true, nil
+		for _, flag := range grocery.(*model.Grocery).Flags {
+			if flag.Id == flagId {
+				return true, nil
+			}
 		}
 	}
 
 	return false, nil
+}
+
+func (repo GroceryRepository) ReadPe(id string) (*persistenceentites.CrudPersistenceEntity, error) {
+	pe := persistenceentites.GroceryPersistenceEntity{}
+	err := repo.db.Preload(clause.Associations).Model(&persistenceentites.GroceryPersistenceEntity{}).Where("id = ?", id).Find(&pe).Error
+
+	if err != nil {
+		return nil, errors.NewServerError(fmt.Sprintf("Something went wrong retrieving the grocery with id %s", id))
+	}
+
+	var result persistenceentites.CrudPersistenceEntity = pe
+
+	return &result, nil
 }

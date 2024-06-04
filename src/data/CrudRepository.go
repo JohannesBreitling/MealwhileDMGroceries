@@ -14,11 +14,12 @@ import (
 type CrudRepository struct {
 	db          *gorm.DB
 	crudMappers mappers.CrudMappersInterface
+	Target      model.CrudEntity
 }
 
-func NewCrudRepository(db *gorm.DB, entity persistenceentites.CrudPersistenceEntity, crudMappers mappers.CrudMappersInterface) CrudRepository {
+func NewCrudRepository(db *gorm.DB, entity persistenceentites.CrudPersistenceEntity, crudMappers mappers.CrudMappersInterface, target model.CrudEntity) CrudRepository {
 	db.AutoMigrate(entity)
-	return CrudRepository{db: db, crudMappers: crudMappers}
+	return CrudRepository{db: db, crudMappers: crudMappers, Target: target}
 }
 
 func (repo CrudRepository) Create(entity model.CrudEntity) (model.CrudEntity, error) {
@@ -26,7 +27,16 @@ func (repo CrudRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	uuid := uuid.New().String()
 	entity.SetId(uuid)
 
-	err := repo.db.Create(repo.crudMappers.EntityToPersistenceEntity(entity)).Error
+	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+
+	err := repo.db.Create(pe).Error
+
+	if err != nil {
+		message := fmt.Sprintf("Creation of %s (%s) was not successful", entity.EntityName(), entity.String())
+		return entity.Empty(), errors.NewServerError(message)
+	}
+
+	err = repo.db.Save(pe).Error
 
 	if err != nil {
 		message := fmt.Sprintf("Creation of %s (%s) was not successful", entity.EntityName(), entity.String())
@@ -36,17 +46,17 @@ func (repo CrudRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	return entity, nil
 }
 
-func (repo CrudRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
+func (repo CrudRepository) ReadAll() ([]model.CrudEntity, error) {
 	var result []map[string]interface{}
 
 	// Convert the received target to a persistence entity
-	petarget := repo.crudMappers.EntityToPersistenceEntity(target)
+	petarget := repo.crudMappers.EntityToPersistenceEntity(repo.Target)
 
 	// Find all the results
 	err := repo.db.Model(petarget).Find(&result).Error
 
 	if err != nil {
-		message := fmt.Sprintf("Retrieval of all entities of type %s was not successful", target.EntityName())
+		message := fmt.Sprintf("Retrieval of all entities of type %s was not successful", repo.Target.EntityName())
 		return nil, errors.NewServerError(message)
 	}
 
@@ -54,40 +64,49 @@ func (repo CrudRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity,
 	results := []model.CrudEntity{}
 
 	for _, v := range result {
-		entity := target.FromInterface(v)
+		entity := repo.Target.FromInterface(v)
 		results = append(results, entity)
 	}
 
 	return results, nil
 }
 
-func (repo CrudRepository) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
-	var result map[string]interface{}
-
-	// Convert the received target to a persistence entity
-	petarget := repo.crudMappers.EntityToPersistenceEntity(target)
-
-	// Find the result
-	err := repo.db.Model(petarget).Where("id = ?", id).Find(&result).Error
-
-	if err == gorm.ErrRecordNotFound || result == nil {
-		return nil, errors.NewEntityNotFound(target, fmt.Sprintf("id %s", target.GetId()))
-	}
+func (repo CrudRepository) Read(id string) (model.CrudEntity, error) {
+	pe, err := repo.ReadPe(id)
 
 	if err != nil {
-		message := fmt.Sprintf("Retrieval of %s with id %s was not successful", target.EntityName(), id)
-		return nil, errors.NewServerError(message)
+		return nil, err
 	}
 
-	// Convert the result
-	entity := target.FromInterface(result)
+	return repo.crudMappers.PersistenceEntityToEntity(*pe), nil
+	/*
+		var result map[string]interface{}
 
-	return entity, nil
+		// Convert the received target to a persistence entity
+		petarget := repo.crudMappers.EntityToPersistenceEntity(repo.target)
+
+		// Find the result
+		err := repo.db.Model(petarget).Where("id = ?", id).Find(&result).Error
+
+		if err == gorm.ErrRecordNotFound || result == nil {
+			return nil, errors.NewEntityNotFound(repo.target, fmt.Sprintf("id %s", repo.target.GetId()))
+		}
+
+		if err != nil {
+			message := fmt.Sprintf("Retrieval of %s with id %s was not successful", repo.target.EntityName(), id)
+			return nil, errors.NewServerError(message)
+		}
+
+		// Convert the result
+		entity := repo.target.FromInterface(result)
+
+		return entity, nil
+	*/
 }
 
 func (repo CrudRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
 	// Check if the entity exists
-	found, err := repo.Exists(entity, entity.GetId())
+	found, err := repo.Exists(entity.GetId())
 
 	if err != nil {
 		// Some sort of db error has occured
@@ -112,9 +131,11 @@ func (repo CrudRepository) Update(entity model.CrudEntity) (model.CrudEntity, er
 	return entity, nil
 }
 
-func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
+func (repo CrudRepository) Delete(id string) error {
+	// Get the persistence entity with the give id
+
 	// Check if a entity with the given id exists
-	found, err := repo.Exists(entity, id)
+	found, err := repo.Exists(id)
 
 	if err != nil {
 		// db error
@@ -123,13 +144,13 @@ func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
 
 	if !found {
 		// The entity that should be deleted does not exist
-		return errors.NewEntityNotFound(entity, fmt.Sprintf("id %s", id))
+		return errors.NewEntityNotFound(repo.Target, fmt.Sprintf("id %s", id))
 	}
 
 	// Get the persistence entity
-	pe := repo.crudMappers.EntityToPersistenceEntity(entity)
+	pe := repo.crudMappers.EntityToPersistenceEntity(repo.Target)
 
-	foundEntity, err := repo.Read(entity, id)
+	foundEntity, err := repo.Read(id)
 
 	if err != nil {
 		return err
@@ -144,8 +165,8 @@ func (repo CrudRepository) Delete(entity model.CrudEntity, id string) error {
 	return nil
 }
 
-func (repo CrudRepository) Exists(entity model.CrudEntity, id string) (bool, error) {
-	_, err := repo.Read(entity, id)
+func (repo CrudRepository) Exists(id string) (bool, error) {
+	_, err := repo.Read(id)
 
 	if err != nil && err.(errors.AppError).Code == 404 {
 		return false, nil
@@ -154,4 +175,28 @@ func (repo CrudRepository) Exists(entity model.CrudEntity, id string) (bool, err
 	}
 
 	return true, nil
+}
+
+func (repo CrudRepository) ReadPe(id string) (*persistenceentites.CrudPersistenceEntity, error) {
+	var result map[string]interface{}
+
+	// Convert the received target to a persistence entity
+	petarget := repo.crudMappers.EntityToPersistenceEntity(repo.Target)
+
+	// Find the result
+	err := repo.db.Model(&petarget).Where("id = ?", id).Find(&result).Error
+
+	if err == gorm.ErrRecordNotFound || result == nil {
+		return nil, errors.NewEntityNotFound(repo.Target, fmt.Sprintf("id %s", id))
+	}
+
+	if err != nil {
+		message := fmt.Sprintf("Retrieval of %s with id %s was not successful", repo.Target.EntityName(), id)
+		return nil, errors.NewServerError(message)
+	}
+
+	// Convert the result
+	entity := petarget.FromInterface(result)
+
+	return &entity, nil
 }

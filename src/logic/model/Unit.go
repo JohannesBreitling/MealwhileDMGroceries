@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"mealwhile/logic/model/requests"
 )
 
 type Unit struct {
@@ -30,30 +31,8 @@ func (u Unit) String() string {
 	return str
 }
 
-func (u Unit) FromArguments(args map[string]string) CrudEntity {
-	unit := Unit{}
-
-	id, idOk := args["id"]
-	name, nameOk := args["name"]
-	abbreviation, abbreviationOk := args["abbreviation"]
-
-	if idOk {
-		unit.Id = id
-	}
-
-	if nameOk {
-		unit.Name = name
-	}
-
-	if abbreviationOk {
-		unit.Abbreviation = abbreviation
-	}
-
-	return &unit
-}
-
-func (u Unit) Attributes() map[string]string {
-	result := make(map[string]string)
+func (u Unit) Attributes() map[string]interface{} {
+	result := make(map[string]interface{})
 
 	result["id"] = u.Id
 	result["name"] = u.Name
@@ -82,4 +61,26 @@ func (u Unit) FromInterface(arg map[string]interface{}) CrudEntity {
 	}
 
 	return &unit
+}
+
+func (u Unit) BuildRequest(arg map[string]interface{}) requests.CrudRequest {
+	unitRequest := requests.UnitRequest{}
+
+	id, idOk := arg["id"]
+	name, nameOk := arg["name"]
+	abbreviation, abbreviationOk := arg["abbreviation"]
+
+	if idOk {
+		unitRequest.Id = id.(string)
+	}
+
+	if nameOk {
+		unitRequest.Name = name.(string)
+	}
+
+	if abbreviationOk {
+		unitRequest.Abbreviation = abbreviation.(string)
+	}
+
+	return unitRequest
 }

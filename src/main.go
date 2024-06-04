@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mealwhile/api/controller"
 	"mealwhile/data"
+	"mealwhile/logic/model"
 	"mealwhile/logic/operations"
 	"net/http"
 	"os"
@@ -44,9 +45,9 @@ func main() {
 	groceryRepository := data.NewGroceryRepository(db)
 
 	// Create the CrudServices
-	unitCrudService := operations.NewCrudService(unitRepository)
-	flagCrudService := operations.NewCrudService(flagRepository)
-	groceryCrudService := operations.NewCrudService(groceryRepository)
+	unitCrudService := operations.NewCrudService(unitRepository, &model.Unit{})
+	flagCrudService := operations.NewCrudService(flagRepository, &model.Flag{})
+	groceryCrudService := operations.NewCrudService(groceryRepository, &model.Grocery{})
 
 	// Create the operations
 	unitOperations := operations.NewUnitOperations(unitCrudService)
@@ -76,9 +77,9 @@ func main() {
 	//	Update: []string{"id", "name", "description"},
 	//}
 
-	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments)
-	flagCrudController := controller.NewCrudController(flagOperations, flagExpectedCrudArguments)
-	groceryCrudController := controller.NewCrudController(groceryOperations, groceryExpectedCrudArguments)
+	unitCrudController := controller.NewCrudController(unitOperations, unitExpectedCrudArguments, &model.Unit{})
+	flagCrudController := controller.NewCrudController(flagOperations, flagExpectedCrudArguments, &model.Flag{})
+	groceryCrudController := controller.NewCrudController(groceryOperations, groceryExpectedCrudArguments, &model.Grocery{})
 	// TODO recipeCrudController := controller.NewCrudController()
 
 	groceryController := controller.NewGroceryController(unitOperations, unitCrudController, flagOperations, flagCrudController, groceryOperations, groceryCrudController)

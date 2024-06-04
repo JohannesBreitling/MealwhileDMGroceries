@@ -1,14 +1,14 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
+	"mealwhile/logic/model/requests"
 )
 
 type Grocery struct {
-	Id      string
-	Name    string
-	FlagIds []string
+	Id    string
+	Name  string
+	Flags []Flag
 }
 
 func (g Grocery) GetId() string {
@@ -23,63 +23,40 @@ func (Grocery) Empty() CrudEntity {
 	return &Grocery{}
 }
 
-func flagIdsToString(flags []string) string {
-	jsonFlags, _ := json.Marshal(flags)
-	return string(jsonFlags)
-}
-
-func stringToFlagIds(s string) []string {
-	var flagIds []string
-	json.Unmarshal([]byte(s), &flagIds)
-	return flagIds
-}
-
-func (g Grocery) Attributes() map[string]string {
-	result := make(map[string]string)
+func (g Grocery) Attributes() map[string]interface{} {
+	result := make(map[string]interface{})
 
 	result["id"] = g.Id
 	result["name"] = g.Name
-	result["flagIds"] = flagIdsToString(g.FlagIds)
+	result["flags"] = g.Flags
 
 	return result
 }
 
 func (g Grocery) String() string {
-	str := fmt.Sprintf("{'id': %s, 'name': %s, 'flagIds': %s}", g.Id, g.Name, flagIdsToString(g.FlagIds))
+	str := fmt.Sprintf("{'id': %s, 'name': %s, 'flags': %s}", g.Id, g.Name, flagsToString(g.Flags))
 	return str
+}
+
+func flagsToString(flags []Flag) string {
+	var result string = ""
+
+	for _, flag := range flags {
+		result += flag.String()
+	}
+
+	return result
 }
 
 func (Grocery) EntityName() string {
 	return "grocery"
 }
 
-func (Grocery) FromArguments(args map[string]string) CrudEntity {
-	grocery := Grocery{}
-	id, idOk := args["id"]
-	name, nameOk := args["name"]
-	flagIdsString, flagsOk := args["flagIds"]
-
-	if idOk {
-		grocery.Id = id
-	}
-
-	if nameOk {
-		grocery.Name = name
-	}
-
-	if flagsOk {
-		grocery.FlagIds = stringToFlagIds(flagIdsString)
-	}
-
-	return &grocery
-}
-
 func (Grocery) FromInterface(args map[string]interface{}) CrudEntity {
 	grocery := Grocery{}
 	id, idOk := args["id"].(string)
 	name, nameOk := args["name"].(string)
-	flagIdsString1, flags1Ok := args["flagIds"].([]interface{})
-	flagIdsString2, flags2Ok := args["flag_ids"].(string)
+	flagIdsString, flagsOk := args["flags"].([]interface{})
 
 	if idOk {
 		grocery.Id = id
@@ -89,18 +66,40 @@ func (Grocery) FromInterface(args map[string]interface{}) CrudEntity {
 		grocery.Name = name
 	}
 
-	var flagIds []string
-	if flags1Ok && flagIdsString1 != nil {
-		for _, flag := range flagIdsString1 {
-			flagIds = append(flagIds, flag.(string))
+	var flags []Flag
+	if flagsOk && flagIdsString != nil {
+		for _, flag := range flagIdsString {
+			flags = append(flags, flag.(Flag))
 		}
 	}
 
-	if flags2Ok && flagIdsString2 != "" {
-		json.Unmarshal([]byte(flagIdsString2), &flagIds)
-	}
-
-	grocery.FlagIds = flagIds
+	grocery.Flags = flags
 
 	return &grocery
+}
+
+func (Grocery) BuildRequest(args map[string]interface{}) requests.CrudRequest {
+	groceryRequest := requests.GroceryRequest{}
+	id, idOk := args["id"].(string)
+	name, nameOk := args["name"].(string)
+	flagIdsString, flagsOk := args["flagIds"].([]interface{})
+
+	if idOk {
+		groceryRequest.Id = id
+	}
+
+	if nameOk {
+		groceryRequest.Name = name
+	}
+
+	var flags []string
+	if flagsOk && flagIdsString != nil {
+		for _, flag := range flagIdsString {
+			flags = append(flags, flag.(string))
+		}
+	}
+
+	groceryRequest.Flags = flags
+
+	return groceryRequest
 }

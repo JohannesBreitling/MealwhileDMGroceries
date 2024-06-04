@@ -1,7 +1,7 @@
 package persistenceentites
 
 type RecipePersistenceEntity struct {
-	Id          string
+	Id          string `gorm:"primaryKey"`
 	Name        string
 	Description string
 	Ingredients []IngredientPersistenceEntity

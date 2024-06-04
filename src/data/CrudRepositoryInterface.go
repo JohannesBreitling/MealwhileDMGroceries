@@ -1,14 +1,16 @@
 package data
 
 import (
+	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/model"
 )
 
 type CrudRepositoryInterface interface {
 	Create(entity model.CrudEntity) (model.CrudEntity, error)
-	ReadAll(target model.CrudEntity) ([]model.CrudEntity, error)
-	Read(target model.CrudEntity, id string) (model.CrudEntity, error)
+	ReadAll() ([]model.CrudEntity, error)
+	Read(id string) (model.CrudEntity, error)
 	Update(entity model.CrudEntity) (model.CrudEntity, error)
-	Delete(target model.CrudEntity, id string) error
-	Exists(entity model.CrudEntity, id string) (bool, error)
+	Delete(id string) error
+	Exists(id string) (bool, error)
+	ReadPe(id string) (*persistenceentites.CrudPersistenceEntity, error)
 }

@@ -1,36 +1,55 @@
 package mappers
 
 import (
-	"encoding/json"
 	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/model"
+	"reflect"
 )
 
 type GroceryMapper struct {
+	flagMapper *FlagMapper
 }
 
-func (GroceryMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceentites.CrudPersistenceEntity {
+func NewGroceryMapper(flagMapper *FlagMapper) GroceryMapper {
+	return GroceryMapper{flagMapper: flagMapper}
+}
+
+func (gm GroceryMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceentites.CrudPersistenceEntity {
 	grocery := e.(*model.Grocery)
 
-	flagIds, _ := json.Marshal(grocery.FlagIds)
+	var flagPes []persistenceentites.FlagPersistenceEntity
+	for _, flag := range grocery.Flags {
+		flagPes = append(flagPes, gm.flagMapper.EntityToPersistenceEntity(&flag).(persistenceentites.FlagPersistenceEntity))
+	}
 
 	return persistenceentites.GroceryPersistenceEntity{
-		Id:      grocery.Id,
-		Name:    grocery.Name,
-		FlagIds: string(flagIds),
+		Id:    grocery.Id,
+		Name:  grocery.Name,
+		Flags: flagPes,
 	}
 }
 
-func (GroceryMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenceEntity) model.CrudEntity {
-	gpe := pe.(persistenceentites.GroceryPersistenceEntity)
+func (gm GroceryMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenceEntity) model.CrudEntity {
+	var gpe persistenceentites.GroceryPersistenceEntity
+	switch reflect.TypeOf(pe) {
+	case reflect.TypeOf(persistenceentites.GroceryPersistenceEntity{}):
+		gpe = pe.(persistenceentites.GroceryPersistenceEntity)
+	case reflect.TypeOf(&persistenceentites.GroceryPersistenceEntity{}):
+		gpe = *(pe.(*persistenceentites.GroceryPersistenceEntity))
+	default:
+		gpe = persistenceentites.GroceryPersistenceEntity{}
+	}
 
-	var flags []string
-	json.Unmarshal([]byte(gpe.FlagIds), &flags)
+	var flags []model.Flag
+	for _, flagPe := range gpe.Flags {
+		flag := gm.flagMapper.PersistenceEntityToEntity(flagPe).(*model.Flag)
+		flags = append(flags, *flag)
+	}
 
 	return &model.Grocery{
-		Id:      gpe.Id,
-		Name:    gpe.Name,
-		FlagIds: flags,
+		Id:    gpe.Id,
+		Name:  gpe.Name,
+		Flags: flags,
 	}
 }
 

@@ -1,13 +1,15 @@
 package model
 
+import "mealwhile/logic/model/requests"
+
 type CrudEntity interface {
 	GetId() string
 	SetId(id string)
 
 	Empty() CrudEntity
-	Attributes() map[string]string
+	Attributes() map[string]interface{}
 	String() string
 	EntityName() string
-	// FromArguments(map[string]string) CrudEntity
 	FromInterface(map[string]interface{}) CrudEntity
+	BuildRequest(map[string]interface{}) requests.CrudRequest
 }

@@ -18,13 +18,14 @@ type FlagRepository struct {
 
 func NewFlagRepository(db *gorm.DB) FlagRepository {
 	db.AutoMigrate(&persistenceentites.FlagPersistenceEntity{})
+	db.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&persistenceentites.FlagPersistenceEntity{})
 	crudMappers := mappers.FlagMapper{}
-	crudRepo := NewCrudRepository(db, &persistenceentites.FlagPersistenceEntity{}, crudMappers)
+	crudRepo := NewCrudRepository(db, &persistenceentites.FlagPersistenceEntity{}, crudMappers, &model.Flag{})
 	return FlagRepository{db: db, crudRepo: crudRepo, crudMappers: crudMappers}
 }
 
 func (repo FlagRepository) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-	name := entity.Attributes()["name"]
+	name := entity.Attributes()["name"].(string)
 	// Check if the unit with the given name already exists
 	_, err := repo.FindByName(name)
 
@@ -40,22 +41,22 @@ func (repo FlagRepository) Create(entity model.CrudEntity) (model.CrudEntity, er
 	return entity.Empty(), err
 }
 
-func (repo FlagRepository) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
-	return repo.crudRepo.ReadAll(target)
+func (repo FlagRepository) ReadAll() ([]model.CrudEntity, error) {
+	return repo.crudRepo.ReadAll()
 }
 
-func (repo FlagRepository) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
-	return repo.crudRepo.Read(target, id)
+func (repo FlagRepository) Read(id string) (model.CrudEntity, error) {
+	return repo.crudRepo.Read(id)
 }
 
-func (repo FlagRepository) Update(target model.CrudEntity) (model.CrudEntity, error) {
+func (repo FlagRepository) Update(entity model.CrudEntity) (model.CrudEntity, error) {
 	// Check if the new name clashes with another entity
-	flag := target.(*model.Flag)
+	flag := entity.(*model.Flag)
 	foundByName, err := repo.FindByName(flag.Name)
 
 	if err != nil && err.(errors.AppError).Code == 404 {
 		// Name does not exist yet
-		return repo.crudRepo.Update(target)
+		return repo.crudRepo.Update(entity)
 	}
 
 	if err != nil {
@@ -63,21 +64,21 @@ func (repo FlagRepository) Update(target model.CrudEntity) (model.CrudEntity, er
 		return &model.Flag{}, err
 	}
 
-	if foundByName.GetId() == target.GetId() {
+	if foundByName.GetId() == entity.GetId() {
 		// The found entity is the entity that is tried to be updated
-		return repo.crudRepo.Update(target)
+		return repo.crudRepo.Update(entity)
 	}
 
 	// Another entity already has the given name
-	return &model.Flag{}, errors.NewEntityAlreadyExists(target, fmt.Sprintf("name %s", target.(*model.Flag).Name))
+	return &model.Flag{}, errors.NewEntityAlreadyExists(entity, fmt.Sprintf("name %s", entity.(*model.Flag).Name))
 }
 
-func (repo FlagRepository) Delete(target model.CrudEntity, id string) error {
-	return repo.crudRepo.Delete(target, id)
+func (repo FlagRepository) Delete(id string) error {
+	return repo.crudRepo.Delete(id)
 }
 
-func (repo FlagRepository) Exists(target model.CrudEntity, id string) (bool, error) {
-	return repo.crudRepo.Exists(target, id)
+func (repo FlagRepository) Exists(id string) (bool, error) {
+	return repo.crudRepo.Exists(id)
 }
 
 func (repo FlagRepository) FindByName(name string) (model.CrudEntity, error) {
@@ -99,4 +100,8 @@ func (repo FlagRepository) FindByName(name string) (model.CrudEntity, error) {
 	}
 
 	return flag, nil
+}
+
+func (repo FlagRepository) ReadPe(id string) (*persistenceentites.CrudPersistenceEntity, error) {
+	return repo.crudRepo.ReadPe(id)
 }

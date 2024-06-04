@@ -2,12 +2,13 @@ package interfaces
 
 import (
 	"mealwhile/logic/model"
+	"mealwhile/logic/model/requests"
 )
 
 type CrudServiceInterface interface {
-	Create(entity model.CrudEntity) (model.CrudEntity, error)
-	ReadAll(target model.CrudEntity) ([]model.CrudEntity, error)
-	Read(target model.CrudEntity, id string) (model.CrudEntity, error)
-	Update(entity model.CrudEntity) (model.CrudEntity, error)
-	Delete(target model.CrudEntity, id string) error
+	Create(request requests.CrudRequest) (model.CrudEntity, error)
+	ReadAll() ([]model.CrudEntity, error)
+	Read(id string) (model.CrudEntity, error)
+	Update(request requests.CrudRequest) (model.CrudEntity, error)
+	Delete(id string) error
 }

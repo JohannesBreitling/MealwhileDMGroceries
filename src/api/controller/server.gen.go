@@ -39,25 +39,25 @@ type ServerInterface interface {
 	UpdateGrocery(ctx echo.Context) error
 	// Delete one grocery
 	// (DELETE /api/v1/grocery/{id})
-	DeleteGrocery(ctx echo.Context, id Id) error
+	DeleteGrocery(ctx echo.Context, id string) error
 	// Get one grocery with specified id
 	// (GET /api/v1/grocery/{id})
 	GetGrocery(ctx echo.Context, id Id) error
 	// Get all recipes
 	// (GET /api/v1/recipe/)
-	// TODO GetRecipes(ctx echo.Context) error
+	GetRecipes(ctx echo.Context) error
 	// Create a new recipe
 	// (POST /api/v1/recipe/)
-	// TODO CreateRecipe(ctx echo.Context) error
+	CreateRecipe(ctx echo.Context) error
 	// Update an existing recipe
 	// (PUT /api/v1/recipe/)
-	// TODO UpdateRecipe(ctx echo.Context) error
+	UpdateRecipe(ctx echo.Context) error
 	// Delete one recipe
 	// (DELETE /api/v1/recipe/{id})
-	// TODO DeleteRecipe(ctx echo.Context, id Id) error
+	DeleteRecipe(ctx echo.Context, id Id) error
 	// Get one recipe with specified id
 	// (GET /api/v1/recipe/{id})
-	// TODO GetRecipe(ctx echo.Context, id Id) error
+	GetRecipe(ctx echo.Context, id Id) error
 	// Get all units
 	// (GET /api/v1/unit/)
 	GetUnits(ctx echo.Context) error
@@ -170,7 +170,7 @@ func (w *ServerInterfaceWrapper) UpdateGrocery(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) DeleteGrocery(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "id" -------------
-	var id Id
+	var id string
 
 	err = runtime.BindStyledParameterWithOptions("simple", "id", ctx.Param("id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
@@ -197,8 +197,6 @@ func (w *ServerInterfaceWrapper) GetGrocery(ctx echo.Context) error {
 	err = w.Handler.GetGrocery(ctx, id)
 	return err
 }
-
-/* TODO
 
 // GetRecipes converts echo context to params.
 func (w *ServerInterfaceWrapper) GetRecipes(ctx echo.Context) error {
@@ -258,8 +256,6 @@ func (w *ServerInterfaceWrapper) GetRecipe(ctx echo.Context) error {
 	err = w.Handler.GetRecipe(ctx, id)
 	return err
 }
-
-*/
 
 // GetUnits converts echo context to params.
 func (w *ServerInterfaceWrapper) GetUnits(ctx echo.Context) error {
@@ -358,11 +354,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.PUT(baseURL+"/api/v1/grocery/", wrapper.UpdateGrocery)
 	router.DELETE(baseURL+"/api/v1/grocery/:id", wrapper.DeleteGrocery)
 	router.GET(baseURL+"/api/v1/grocery/:id", wrapper.GetGrocery)
-	// TODO router.GET(baseURL+"/api/v1/recipe/", wrapper.GetRecipes)
-	// TODO router.POST(baseURL+"/api/v1/recipe/", wrapper.CreateRecipe)
-	// TODO router.PUT(baseURL+"/api/v1/recipe/", wrapper.UpdateRecipe)
-	// TODO router.DELETE(baseURL+"/api/v1/recipe/:id", wrapper.DeleteRecipe)
-	// TODO router.GET(baseURL+"/api/v1/recipe/:id", wrapper.GetRecipe)
+	router.GET(baseURL+"/api/v1/recipe/", wrapper.GetRecipes)
+	router.POST(baseURL+"/api/v1/recipe/", wrapper.CreateRecipe)
+	router.PUT(baseURL+"/api/v1/recipe/", wrapper.UpdateRecipe)
+	router.DELETE(baseURL+"/api/v1/recipe/:id", wrapper.DeleteRecipe)
+	router.GET(baseURL+"/api/v1/recipe/:id", wrapper.GetRecipe)
 	router.GET(baseURL+"/api/v1/unit/", wrapper.GetUnits)
 	router.POST(baseURL+"/api/v1/unit/", wrapper.CreateUnit)
 	router.PUT(baseURL+"/api/v1/unit/", wrapper.UpdateUnit)

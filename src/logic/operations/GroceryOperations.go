@@ -1,10 +1,9 @@
 package operations
 
 import (
-	"fmt"
 	"mealwhile/data"
-	"mealwhile/errors"
 	"mealwhile/logic/model"
+	"mealwhile/logic/model/requests"
 )
 
 type GroceryOperations struct {
@@ -20,39 +19,70 @@ func (o *GroceryOperations) SetFlagOperations(flagOps *FlagOperations) {
 	o.flagOperations = flagOps
 }
 
-func (ops GroceryOperations) Create(entity model.CrudEntity) (model.CrudEntity, error) {
-	// Check if all the flags exist
-	grocery := entity.(*model.Grocery)
+func (ops GroceryOperations) getFlagsFromStrings(flagIds []string) ([]model.Flag, error) {
+	// Check if all the flags exist and read them
+	var result []model.Flag
 
-	for _, flag := range grocery.FlagIds {
-		exists, err := ops.flagOperations.Service.repo.Exists(&model.Flag{}, flag)
+	for _, flagId := range flagIds {
+		flag, err := ops.flagOperations.Service.repo.Read(flagId)
 
 		if err != nil {
-			return &model.Grocery{}, err
+			return nil, err
 		}
 
-		if !exists {
-			return &model.Grocery{}, errors.NewEntityNotFound(&model.Flag{}, fmt.Sprintf("id %s", flag))
-		}
+		result = append(result, *flag.(*model.Flag))
 	}
 
-	return ops.Service.Create(entity)
+	return result, nil
 }
 
-func (ops GroceryOperations) ReadAll(target model.CrudEntity) ([]model.CrudEntity, error) {
-	return ops.Service.ReadAll(&model.Grocery{})
+func (ops GroceryOperations) Create(request requests.CrudRequest) (model.CrudEntity, error) {
+	// Check if all the flags exist
+	groceryRequest := request.(requests.GroceryRequest)
+
+	flags, err := ops.getFlagsFromStrings(groceryRequest.Flags)
+
+	if err != nil {
+		return &model.Grocery{}, err
+	}
+
+	grocery := model.Grocery{
+		Name:  groceryRequest.Name,
+		Flags: flags,
+	}
+
+	return ops.Service.Create(&grocery)
 }
 
-func (ops GroceryOperations) Read(target model.CrudEntity, id string) (model.CrudEntity, error) {
-	return ops.Service.Read(target, id)
+func (ops GroceryOperations) ReadAll() ([]model.CrudEntity, error) {
+	return ops.Service.ReadAll()
 }
 
-func (ops GroceryOperations) Update(entity model.CrudEntity) (model.CrudEntity, error) {
-	return ops.Service.Update(entity)
+func (ops GroceryOperations) Read(id string) (model.CrudEntity, error) {
+	return ops.Service.Read(id)
 }
 
-func (ops GroceryOperations) Delete(target model.CrudEntity, id string) error {
-	return ops.Service.Delete(target, id)
+func (ops GroceryOperations) Update(request requests.CrudRequest) (model.CrudEntity, error) {
+	// Check if all the flags exist
+	groceryRequest := request.(requests.GroceryRequest)
+
+	flags, err := ops.getFlagsFromStrings(groceryRequest.Flags)
+
+	if err != nil {
+		return &model.Grocery{}, err
+	}
+
+	grocery := model.Grocery{
+		Id:    groceryRequest.Id,
+		Name:  groceryRequest.Name,
+		Flags: flags,
+	}
+
+	return ops.Service.Update(&grocery)
+}
+
+func (ops GroceryOperations) Delete(id string) error {
+	return ops.Service.Delete(id)
 }
 
 func (ops GroceryOperations) FlagReferenced(flagId string) (bool, error) {

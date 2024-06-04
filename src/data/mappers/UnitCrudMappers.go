@@ -3,6 +3,7 @@ package mappers
 import (
 	persistenceentites "mealwhile/data/persistenceentities"
 	"mealwhile/logic/model"
+	"reflect"
 )
 
 type UnitMapper struct {
@@ -19,7 +20,15 @@ func (UnitMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceentit
 }
 
 func (UnitMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenceEntity) model.CrudEntity {
-	upe := pe.(persistenceentites.UnitPersistenceEntity)
+	var upe persistenceentites.UnitPersistenceEntity
+	switch reflect.TypeOf(pe) {
+	case reflect.TypeOf(persistenceentites.UnitPersistenceEntity{}):
+		upe = pe.(persistenceentites.UnitPersistenceEntity)
+	case reflect.TypeOf(&persistenceentites.UnitPersistenceEntity{}):
+		upe = *(pe.(*persistenceentites.UnitPersistenceEntity))
+	default:
+		upe = persistenceentites.UnitPersistenceEntity{}
+	}
 
 	return &model.Unit{
 		Id:           upe.Id,

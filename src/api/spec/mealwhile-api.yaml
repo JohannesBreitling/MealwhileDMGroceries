@@ -34,7 +34,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/unit'
+              $ref: '#/components/schemas/unitRequest'
       responses:
         '200':
           description: Successful creation of unit
@@ -67,7 +67,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/unit'
+              $ref: '#/components/schemas/unitRequest'
       responses:
         '200':
           description: Successful update of unit
@@ -110,11 +110,11 @@ paths:
             $ref: '#/components/schemas/id'
       responses:
         '200':
-          description: Sucessful deletion of the units
+          description: Sucessful deletion of the unit
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/unit'
+                type: string
 
   # Section for the Flags
   /api/v1/flag/:
@@ -128,7 +128,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/flag'
+              $ref: '#/components/schemas/flagRequest'
       responses:
         '200':
           description: Successful creation of flag
@@ -140,7 +140,7 @@ paths:
     get:
       operationId: getFlags
       tags:
-        - unit
+        - flag
       summary: Get all flags
       responses:
         '200':
@@ -155,13 +155,13 @@ paths:
     put:
       operationId: updateFlag
       tags:
-        - unit
+        - flag
       summary: Update an existing flag
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/flag'
+              $ref: '#/components/schemas/flagRequest'
       responses:
         '200':
           description: Successful update of flag
@@ -208,7 +208,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/flag'
+                type: string
   
   # Section for the groceries
   /api/v1/grocery/:
@@ -222,7 +222,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/grocery'
+              $ref: '#/components/schemas/groceryRequest'
       responses:
         '200':
           description: Successful creation of grocery
@@ -255,7 +255,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/grocery'
+              $ref: '#/components/schemas/groceryRequest'
       responses:
         '200':
           description: Successful update of grocery
@@ -295,7 +295,7 @@ paths:
           description: Id of the grocery
           required: true
           schema:
-            $ref: '#/components/schemas/id'
+            type: string
       responses:
         '200':
           description: Sucessful deletion of the grocery
@@ -316,7 +316,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/recipe'
+              $ref: '#/components/schemas/recipeRequest'
       responses:
         '200':
           description: Successful creation of recipe
@@ -349,7 +349,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/recipe'
+              $ref: '#/components/schemas/recipeRequest'
       responses:
         '200':
           description: Successful update of recipe
@@ -396,7 +396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/recipe'
+                type: string
 
 components:
   schemas:
@@ -417,7 +417,33 @@ components:
           type: string
           description: Abbreviation of the unit in recipes
           example: g
+    unitRequest:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: Name of the unit
+          example: Gram
+        abbreviation:
+          type: string
+          description: Abbreviation of the unit in recipes
+          example: g
     flag:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: Name of the flag
+          example: Hazelnut
+        description:
+          type: string
+          description: Description of the respective grocery flag. It can desrcibe allergies or dietries
+          example: The grocery contains hazelnuts.
+    flagRequest:
       type: object
       properties:
         id:
@@ -444,6 +470,20 @@ components:
           description: The grocery flags contained by the grocery
           items:
             $ref: '#/components/schemas/flag'
+    groceryRequest:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: Name of the grocery
+          example: Hackfleisch (gemischt)
+        flags:
+          type: array
+          description: The grocery flags contained by the grocery
+          items:
+            $ref: '#/components/schemas/id'
     ingredient:
       type: object
       properties:
@@ -453,7 +493,36 @@ components:
           $ref: '#/components/schemas/unit'
         amount:
           type: number
+    ingredientRequest:
+      type: object
+      properties:
+        grocery:
+          $ref: '#/components/schemas/id'
+        unit:
+          $ref: '#/components/schemas/id'
+        amount:
+          type: number
     recipe:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        name:
+          type: string
+          description: The name of the recipe
+          example: Spaghetti Bolognese
+        description:
+          type: string
+          description: The description of the recipe
+        steps:
+          type: array
+          items:
+            type: string
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/ingredient'
+    recipeRequest:
       type: object
       properties:
         id:

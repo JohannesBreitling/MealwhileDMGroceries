@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"mealwhile/logic/model/requests"
 )
 
 type Flag struct {
@@ -26,8 +27,8 @@ func (Flag) EntityName() string {
 	return "flag"
 }
 
-func (f Flag) Attributes() map[string]string {
-	result := make(map[string]string)
+func (f Flag) Attributes() map[string]interface{} {
+	result := make(map[string]interface{})
 
 	result["id"] = f.Id
 	result["name"] = f.Name
@@ -39,28 +40,6 @@ func (f Flag) Attributes() map[string]string {
 func (f Flag) String() string {
 	str := fmt.Sprintf("{'id': %s, 'name': %s, 'description': %s}", f.Id, f.Name, f.Description)
 	return str
-}
-
-func (f Flag) FromArguments(args map[string]string) CrudEntity {
-	flag := Flag{}
-
-	id, idOk := args["id"]
-	name, nameOk := args["name"]
-	description, descriptionOk := args["description"]
-
-	if idOk {
-		flag.Id = id
-	}
-
-	if nameOk {
-		flag.Name = name
-	}
-
-	if descriptionOk {
-		flag.Description = description
-	}
-
-	return &flag
 }
 
 func (f Flag) FromInterface(arg map[string]interface{}) CrudEntity {
@@ -83,4 +62,26 @@ func (f Flag) FromInterface(arg map[string]interface{}) CrudEntity {
 	}
 
 	return &flag
+}
+
+func (f Flag) BuildRequest(arg map[string]interface{}) requests.CrudRequest {
+	flagRequest := requests.FlagRequest{}
+
+	id, idOk := arg["id"].(string)
+	name, nameOk := arg["name"].(string)
+	description, descriptionOk := arg["description"].(string)
+
+	if idOk {
+		flagRequest.Id = id
+	}
+
+	if nameOk {
+		flagRequest.Name = name
+	}
+
+	if descriptionOk {
+		flagRequest.Description = description
+	}
+
+	return flagRequest
 }

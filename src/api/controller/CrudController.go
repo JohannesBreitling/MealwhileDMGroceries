@@ -30,12 +30,13 @@ func BuildAttributeString(attributes []string) string {
 }
 
 type CrudController struct {
-	args ExpectedCrudArguments
-	ops  interfaces.CrudServiceInterface
+	args   ExpectedCrudArguments
+	ops    interfaces.CrudServiceInterface
+	target model.CrudEntity
 }
 
-func NewCrudController(ops interfaces.CrudServiceInterface, args ExpectedCrudArguments) CrudController {
-	return CrudController{ops: ops, args: args}
+func NewCrudController(ops interfaces.CrudServiceInterface, args ExpectedCrudArguments, target model.CrudEntity) CrudController {
+	return CrudController{ops: ops, args: args, target: target}
 }
 
 func (CrudController) validateInput(input map[string]interface{}, expected []string) bool {
@@ -52,7 +53,7 @@ func (CrudController) validateInput(input map[string]interface{}, expected []str
 	return true
 }
 
-func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) error {
+func (ctr CrudController) Create(ctx echo.Context) error {
 	var msg string
 
 	// Get the attributes from the request body
@@ -72,10 +73,10 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 		return ctx.JSON(e.(errors.AppError).Code, e.(errors.AppError).Message)
 	}
 
-	entityBuilt := entity.FromInterface(attributes)
+	request := ctr.target.BuildRequest(attributes)
 
 	// Create the entity
-	createdEntity, err := ctr.ops.Create(entityBuilt)
+	createdEntity, err := ctr.ops.Create(request)
 
 	if err == nil {
 		return ctx.JSON(http.StatusOK, createdEntity)
@@ -85,8 +86,8 @@ func (ctr CrudController) Create(ctx echo.Context, entity model.CrudEntity) erro
 	return ctx.JSON(err.(errors.AppError).Code, err.(errors.AppError).Message)
 }
 
-func (ctr CrudController) GetAll(ctx echo.Context, target model.CrudEntity) error {
-	entities, err := ctr.ops.ReadAll(target)
+func (ctr CrudController) GetAll(ctx echo.Context) error {
+	entities, err := ctr.ops.ReadAll()
 
 	if err != nil {
 		return ctx.JSON(err.(errors.AppError).Code, err.(errors.AppError).Message)
@@ -95,13 +96,13 @@ func (ctr CrudController) GetAll(ctx echo.Context, target model.CrudEntity) erro
 	return ctx.JSON(http.StatusOK, entities)
 }
 
-func (ctr CrudController) Get(ctx echo.Context, target model.CrudEntity, id string) error {
+func (ctr CrudController) Get(ctx echo.Context, id string) error {
 	if id == "" {
 		e := errors.NewBadRequest("The id should not be empty")
 		return ctx.JSON(e.(errors.AppError).Code, e.(errors.AppError).Message)
 	}
 
-	entity, err := ctr.ops.Read(target, id)
+	entity, err := ctr.ops.Read(id)
 
 	if err != nil {
 		return ctx.JSON(err.(errors.AppError).Code, err.(errors.AppError).Message)
@@ -110,7 +111,7 @@ func (ctr CrudController) Get(ctx echo.Context, target model.CrudEntity, id stri
 	return ctx.JSON(http.StatusOK, entity)
 }
 
-func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity) error {
+func (ctr CrudController) Update(ctx echo.Context) error {
 	// Get the attributes from the request body
 	var attributes map[string]interface{}
 	err := (&echo.DefaultBinder{}).BindBody(ctx, &attributes)
@@ -128,8 +129,8 @@ func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity) erro
 		return ctx.JSON(e.(errors.AppError).Code, e.(errors.AppError).Message)
 	}
 
-	entityBuilt := entity.FromInterface(attributes)
-	newEntity, err := ctr.ops.Update(entityBuilt)
+	request := ctr.target.BuildRequest(attributes)
+	newEntity, err := ctr.ops.Update(request)
 
 	if err != nil {
 		return ctx.JSON(err.(errors.AppError).Code, err.(errors.AppError).Message)
@@ -138,13 +139,13 @@ func (ctr CrudController) Update(ctx echo.Context, entity model.CrudEntity) erro
 	return ctx.JSON(http.StatusOK, newEntity)
 }
 
-func (ctr CrudController) Delete(ctx echo.Context, target model.CrudEntity, id string) error {
+func (ctr CrudController) Delete(ctx echo.Context, id string) error {
 	if id == "" {
 		e := errors.NewBadRequest("The id should not be empty")
 		return ctx.JSON(e.(errors.AppError).Code, e.(errors.AppError).Message)
 	}
 
-	err := ctr.ops.Delete(target, id)
+	err := ctr.ops.Delete(id)
 
 	if err != nil {
 		return ctx.JSON(err.(errors.AppError).Code, err.(errors.AppError).Message)
