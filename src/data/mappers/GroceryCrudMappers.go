@@ -17,7 +17,7 @@ func NewGroceryMapper(flagMapper *FlagMapper) GroceryMapper {
 func (gm GroceryMapper) EntityToPersistenceEntity(e model.CrudEntity) persistenceentites.CrudPersistenceEntity {
 	grocery := e.(*model.Grocery)
 
-	var flagPes []persistenceentites.FlagPersistenceEntity
+	var flagPes []persistenceentites.FlagPersistenceEntity = []persistenceentites.FlagPersistenceEntity{}
 	for _, flag := range grocery.Flags {
 		flagPes = append(flagPes, gm.flagMapper.EntityToPersistenceEntity(&flag).(persistenceentites.FlagPersistenceEntity))
 	}
@@ -40,7 +40,7 @@ func (gm GroceryMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPers
 		gpe = persistenceentites.GroceryPersistenceEntity{}
 	}
 
-	var flags []model.Flag
+	flags := []model.Flag{}
 	for _, flagPe := range gpe.Flags {
 		flag := gm.flagMapper.PersistenceEntityToEntity(flagPe).(*model.Flag)
 		flags = append(flags, *flag)

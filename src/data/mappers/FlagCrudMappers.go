@@ -38,7 +38,7 @@ func (FlagMapper) PersistenceEntityToEntity(pe persistenceentites.CrudPersistenc
 }
 
 func (u FlagMapper) PersisteceEntitesToEntites(pes []persistenceentites.CrudPersistenceEntity) []model.CrudEntity {
-	var es []model.CrudEntity
+	var es []model.CrudEntity = []model.CrudEntity{}
 
 	for _, pe := range pes {
 		es = append(es, u.PersistenceEntityToEntity(pe))
@@ -48,7 +48,7 @@ func (u FlagMapper) PersisteceEntitesToEntites(pes []persistenceentites.CrudPers
 }
 
 func (u FlagMapper) EntitesToPersisteceEntites(es []model.CrudEntity) []persistenceentites.CrudPersistenceEntity {
-	var pes []persistenceentites.CrudPersistenceEntity
+	var pes []persistenceentites.CrudPersistenceEntity = []persistenceentites.CrudPersistenceEntity{}
 
 	for _, e := range es {
 		pes = append(pes, u.EntityToPersistenceEntity(e))

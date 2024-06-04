@@ -7,7 +7,6 @@ import (
 	"mealwhile/errors"
 	"mealwhile/logic/model"
 
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -52,7 +51,7 @@ func (repo GroceryRepository) ReadAll() ([]model.CrudEntity, error) {
 		return nil, errors.NewServerError("Something went wrong retrieving the groceries")
 	}
 
-	var result []model.CrudEntity
+	var result []model.CrudEntity = []model.CrudEntity{}
 
 	for _, gpe := range pes {
 		grocery := repo.crudMappers.PersistenceEntityToEntity(gpe)
@@ -84,8 +83,6 @@ func (repo GroceryRepository) Update(entity model.CrudEntity) (model.CrudEntity,
 		// Some sort of db error
 		return &model.Grocery{}, err
 	}
-
-	logrus.Warn("FOUND BY NAME", foundByName)
 
 	if foundByName.GetId() != "" && foundByName.GetId() != entity.GetId() {
 		// Another entity already has the given name
